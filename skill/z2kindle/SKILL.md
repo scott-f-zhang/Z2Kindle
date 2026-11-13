@@ -7,6 +7,8 @@ description: Turn lecture slides (PDF/PPTX) into Kindle-friendly reading notes �
 
 Full operating manual (layout, every command, rules, pitfalls): `AGENTS.md` in the toolkit root.
 This skill adds the Claude Code specifics: fan stages out to parallel sub-agents.
+Get each sub-agent's prompt with `python3 -I $TK/tools/prompt.py <project> <stage> --chapters …`
+(`<lang>` = `en` or `zh`, chosen from `language:` in book.yaml; default English).
 
 Toolkit root: the folder that contains this skill's `tools/`, `build/`, `prompts/` (if installed
 elsewhere, ask the user for the toolkit path; below it is `$TK`). A **project** is one book, always
@@ -21,23 +23,23 @@ Pipeline (each stage is re-runnable):
 |---|---|---|
 | 0 init | script | `python3 -I $TK/tools/init.py <project> --device scribe-11 --title "…"`, then copy slides into `<project>/sources/` |
 | 1 extract | script | `python3 -I $TK/tools/extract.py <project>` |
-| 2 notes | subagents | `$TK/prompts/summarize.md` |
-| 3 figures | subagents | `$TK/prompts/figures.md` (trial on 1 chapter first) |
-| 3b book edition (optional) | subagents | `$TK/prompts/book.md` (trial first) |
+| 2 notes | subagents | `$TK/prompts/<lang>/summarize.md` |
+| 3 figures | subagents | `$TK/prompts/<lang>/figures.md` (trial on 1 chapter first) |
+| 3b book edition (optional) | subagents | `$TK/prompts/<lang>/book.md` (trial first) |
 | check | script | `python3 -I $TK/tools/check.py <project> [--edition E]` (3b: `--edition book --baseline main --book`) |
 | 4 build | script | `node $TK/build/build.js <project>` → every edition's EPUB in `output/`; web preview only with `--web` or `web: true` |
 
 ## How to run it
 
 1. **Confirm inputs**: where the slides are, target device (`profiles/devices.yaml`; ask if
-   unknown), title, output language/style (the prompts default to Simplified Chinese with
-   English terms; edit the 写作要求 section of the prompt if the user wants something else).
+   unknown), title, book language (`language:` in book.yaml: `en` default, `zh-CN` for Chinese; it picks
+   `prompts/en/` or `prompts/zh/`; edit the template's writing rules for other styles).
    Check deps once: `pdftotext`, `pdftoppm`, `pandoc` (2.x), Python Pillow + PyYAML, and
    `npm install` in `$TK`.
 2. **Extract** (stage 1). Read `work/manifest.json` for page counts.
 3. **Notes** (stage 2). Group chapters so each subagent gets roughly 40–60 slide pages and
    spawn them in parallel (one message, several Agent calls). Each prompt = the contents of
-   `prompts/summarize.md` with `{PROJECT}`, `{TOOLKIT}`, `{CHAPTERS}` filled in (absolute
+   `prompts/<lang>/summarize.md` with `{PROJECT}`, `{TOOLKIT}`, `{CHAPTERS}` filled in (absolute
    paths). Slide content is mostly images, so the agents must view every page image.
 4. **Figures** (stage 3). Run ONE chapter first, build the web pages, look at that chapter in
    the browser (layout, crop quality, captions), fix the prompt if needed, then spawn the
@@ -50,7 +52,7 @@ Pipeline (each stage is re-runnable):
    fails loudly on pandoc errors; unzip and XML-parse the XHTML if in doubt.
 7. **Book edition** (optional): add it under `editions:` in book.yaml (e.g. `book: {notes:
    notes_book, front: front/preface_book.md, title: …, cover: {subheading: …}}`), trial one
-   chapter with `prompts/book.md` ({OUT_NOTES} = `<project>/notes_book`), then fan out; check
+   chapter with `prompts/<lang>/book.md` ({OUT_NOTES} = `<project>/notes_book`), then fan out; check
    with `check.py <project> --edition book --baseline main --book`; `build.js` builds it too.
 8. **Metadata**: ask who the author is (never guess a name) and fill `metadata:` in book.yaml
    (author, optional contributors with roles, date, publisher, description, subject, rights,

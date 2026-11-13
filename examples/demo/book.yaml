@@ -1,38 +1,46 @@
 # Book project config for Z2kindle. Paths are relative to this file.
-title: 演示课程 · 复习笔记
-subtitle: Z2kindle 示例
-language: zh-CN
+title: Demo Course · Revision Notes
+subtitle: Z2kindle demo
+language: en                # en (default) or zh-CN; picks prompts/en or prompts/zh
 device: scribe-11           # see profiles/devices.yaml
 
 sources: sources            # folder with .pdf / .pptx lecture files
 notes: notes                # chapter markdown (one file per source, same stem)
 front: front/preface.md     # optional; shown before chapter list / as first EPUB chapter
 cover:
-  heading: 演示课程
-  subheading: 复习笔记
-  tagline: 示例 · 图文公式完整
-  footer: 为 Kindle Scribe 排版
+  heading: Demo Course
+  subheading: Revision Notes
+  tagline: Demo · formulas and figures
+  footer: Typeset for Kindle Scribe
 
 # Optional explicit chapter order (source file stems). Default: natural sort by the
 # first number in the file name.
 # chapters: [L6_Classification, L7_Logistic_regression]
 
 metadata:                   # embedded in the EPUB; all fields optional
-  author: 示例作者
+  author: Demo Author
   date: 2026-01-15
   publisher: Z2kindle
-  description: Z2kindle 自带的示例书，演示公式、配图和多版本构建。
-  subject: [示例, 逻辑回归]
-  rights: 示例内容，可自由使用
+  description: The demo book bundled with Z2kindle, showing formulas, figures and multi-edition builds.
+  subject: [demo, logistic regression]
+  rights: Demo content, free to use
 
 output_name: demo-notes     # -> output/demo-notes.epub
 web: true                   # also build the web preview (work/web/main/)
 
-# A second edition of the same project (e.g. the book-style rewrite): same sources/figs,
-# its own notes folder and cover. Built to output/demo-notes-book.epub.
+# Another edition of the same project: same sources/figs, its own notes, language and cover.
+# Here a Simplified Chinese edition, built to output/demo-notes-zh.epub. (A book-style rewrite
+# would be added the same way, e.g. `book: {notes: notes_book, ...}`.)
 editions:
-  book:
-    title: 演示课程 · 书本版
-    notes: notes_book
-    cover: {subheading: 书本版}
-    web: false
+  zh:
+    language: zh-CN
+    title: 演示课程 · 复习笔记
+    subtitle: Z2kindle 示例
+    notes: notes_zh
+    front: front/preface_zh.md
+    cover: {heading: 演示课程, subheading: 复习笔记, tagline: 示例 · 图文公式完整, footer: 为 Kindle Scribe 排版}
+    metadata:
+      author: 示例作者
+      description: Z2kindle 自带的示例书，演示公式、配图和多版本构建。
+      subject: [示例, 逻辑回归]
+      rights: 示例内容，可自由使用

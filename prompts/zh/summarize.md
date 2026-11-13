@@ -2,7 +2,7 @@
 Z2kindle prompt template — Stage 2: write reading notes from slides.
 The orchestrator fills: {PROJECT} (absolute project path), {TOOLKIT} (absolute toolkit path),
 {CHAPTERS} (comma-separated source stems assigned to this agent).
-Default output language: Simplified Chinese. Edit the 写作要求 section to change style/language.
+Output language: Simplified Chinese (English version: prompts/en/summarize.md). Edit 写作要求 to change the style.
 -->
 # 任务：根据课件写"阅读版"笔记
 

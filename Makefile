@@ -45,6 +45,7 @@ demo:
 	$(PY) tools/extract.py examples/demo
 	$(PY) tools/figtool.py examples/demo crop L1_Demo_Logistic 2 90 150 660 540 sigmoid
 	$(PY) tools/check.py examples/demo --book
+	$(PY) tools/check.py examples/demo --edition zh --book
 	node build/build.js examples/demo
 
 clean-demo:

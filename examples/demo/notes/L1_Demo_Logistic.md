@@ -1,46 +1,46 @@
-# 第 1 讲　逻辑回归（示例）
+# Lecture 1: Logistic Regression (demo)
 
-这是 Z2kindle 的示例章节，用来演示笔记的写法：公式、图文版式和提示框。内容来自工具包自带的两页演示课件。
+This is the Z2kindle demo chapter. It shows how notes are written: formulas, figure layouts and callout boxes. The content comes from the two demo slides bundled with the toolkit.
 
-## 1.1 用概率来做分类
+## 1.1 Classification with probabilities
 
-逻辑回归（logistic regression）不直接输出类别，而是输出样本属于正类的概率。它的假设函数是
+Logistic regression does not output a class directly; it outputs the probability that a sample belongs to the positive class. Its hypothesis is
 
 $$
 h_\theta(x) = g(\theta^\top x) = \frac{1}{1 + e^{-\theta^\top x}}
 $$
 
-其中 $\theta$ 是参数向量，$x$ 是输入特征。当 $h_\theta(x) \ge 0.5$ 时预测为 1，否则预测为 0。
+where $\theta$ is the parameter vector and $x$ the input features. The model predicts 1 when $h_\theta(x) \ge 0.5$ and 0 otherwise.
 
-## 1.2 Sigmoid 函数
+## 1.2 The sigmoid function
 
 ::: {.fig .side}
-![图 1-1　Sigmoid 函数：输出落在 (0, 1) 之间，在 $z=0$ 处取 0.5（红线）。](figs/L1_Demo_Logistic/sigmoid.png)
+![Figure 1-1. The sigmoid function: outputs lie in (0, 1) and equal 0.5 at $z=0$ (red line).](figs/L1_Demo_Logistic/sigmoid.png)
 :::
 
-上式中的 $g(z) = 1/(1+e^{-z})$ 叫作 sigmoid 函数，形状如图 1-1 所示。它把任意实数压缩到 $(0,1)$ 区间：$z$ 很大时输出接近 1，$z$ 很小时输出接近 0，在 $z=0$ 处恰好等于 0.5。正因为输出在 0 和 1 之间，我们可以把它解释成概率。
+The function $g(z) = 1/(1+e^{-z})$ in the formula above is called the sigmoid function; its shape is shown in Figure 1-1. It squashes any real number into the interval $(0,1)$: for large $z$ the output approaches 1, for very negative $z$ it approaches 0, and at $z=0$ it is exactly 0.5. Because the output lies between 0 and 1, it can be read as a probability.
 
-这个函数处处光滑、单调递增，所以阈值 0.5 对应的正好是 $\theta^\top x = 0$ 这条分界线，也就是模型的决策边界。换句话说，逻辑回归虽然输出的是一条 S 形曲线，但它在输入空间中划出的边界仍然是线性的。
+The function is smooth and monotonically increasing everywhere, so the 0.5 threshold corresponds exactly to the line $\theta^\top x = 0$, which is the model's decision boundary. In other words, although logistic regression outputs an S-shaped curve, the boundary it draws in input space is still linear.
 
-光滑这一点在训练时也很重要：它的导数有简洁的形式 $g'(z) = g(z)\,(1-g(z))$，这让基于梯度的优化方法计算起来非常方便。
+Smoothness also matters for training: the derivative has the simple form $g'(z) = g(z)\,(1-g(z))$, which makes gradient-based optimisation convenient.
 
 ::: {.note}
-**注意：** 这是一个演示用的"注意"框，用来标出课件中疑似笔误或表述不清的地方。
+**Note:** This is a demo "Note" box, used to flag suspected typos or unclear statements in the slides.
 :::
 
-## 本讲小结
+## Summary
 
-逻辑回归用 sigmoid 函数把线性打分变成概率，再用 0.5 作为阈值做分类。
+Logistic regression turns a linear score into a probability with the sigmoid function and classifies with a threshold of 0.5.
 
-### 关键公式
+### Key Formulas
 
 $$
 h_\theta(x) = \frac{1}{1 + e^{-\theta^\top x}}
 $$
 
-### 术语对照
+### Key Terms
 
-| 英文 | 中文 | 说明 |
-|---|---|---|
-| logistic regression | 逻辑回归 | 输出类别概率的线性分类模型 |
-| sigmoid function | S 型函数 | 把实数映射到 (0, 1) 的函数 |
+| Term | Meaning |
+|---|---|
+| logistic regression | a linear classifier that outputs class probabilities |
+| sigmoid function | a function mapping real numbers to (0, 1) |

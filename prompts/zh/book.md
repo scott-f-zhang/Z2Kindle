@@ -4,7 +4,7 @@ The orchestrator fills: {PROJECT}, {TOOLKIT}, {CHAPTERS}, {SOURCE_NOTES} (folder
 current notes, e.g. {PROJECT}/notes), {OUT_NOTES} (folder for the book edition, e.g.
 {PROJECT}/notes_book), {OUTLINE} (one line per chapter: number + title, in reading order), {EDITION} (edition name
 in book.yaml `editions:`, e.g. book),
-{EXAMPLE} (an approved rewritten chapter, after the trial).
+{EXAMPLE} (an approved rewritten chapter, after the trial). English version: prompts/en/book.md.
 -->
 # 任务："书本版"重写
 

@@ -1,36 +1,51 @@
 # Z2kindle
 
-把课件（PDF / PPTX）变成适合 Kindle 阅读的复习笔记：一本可以从头读到尾的 EPUB 电子书。公式完整渲染，课件里的重点图会被裁出来，按版式排进正文。还可以再出一个读起来像教材的"书本版"，以及一份网页预览。
+English | [简体中文](README.zh-CN.md)
 
-*Turn lecture slides (PDF/PPTX) into Kindle-friendly reading notes: an EPUB with rendered formulas and laid-out slide figures, optionally a flowing "book" edition and a web preview. Deterministic steps are scripts; judgement steps (writing, figure selection, rewriting) are prompt templates run by an AI agent. Agents: read [AGENTS.md](AGENTS.md).*
+Turn lecture slides (PDF / PPTX) into Kindle-friendly revision notes: an EPUB you can read from start to finish. Formulas are fully rendered, and the important slide figures are cropped out and laid into the text. Optionally you also get a "book edition" that reads like a textbook, and a web preview.
 
-![Z2kindle 流程](docs/images/pipeline.png)
+![Z2kindle pipeline](docs/images/pipeline.en.png)
 
-流程分成两类工作：
+The work splits into two kinds:
 
-- **脚本**负责固定步骤，每次结果都一样：提取、裁图、校验、构建。
-- **Agent**（Claude Code、Codex 等能看图的编程 Agent）负责需要判断的步骤：写笔记、挑图、选版式、改写。每一步都有一份写好的提示词模板，放在 `prompts/` 里。
+- **Scripts** do the deterministic steps, with the same result every time: extraction, cropping, checking, building.
+- **An agent** (Claude Code, Codex or any coding agent that can read images) does the judgement steps: writing notes, choosing figures and layouts, rewriting. Each step has a ready-made prompt template in `prompts/en/` (English) and `prompts/zh/` (Chinese).
+
+Agents: read [AGENTS.md](AGENTS.md) first.
 
 ---
 
-## 效果
+## What it does
 
-课件里大部分要点和公式都在图片里。Agent 会逐页看图，把内容改写成连贯的中文讲解，公式转写成 LaTeX，挑出真正有用的图并安排版式：
+Most of the bullets and formulas on slides live inside images. The agent reads every page, rewrites the content as connected prose, transcribes formulas as LaTeX, and picks and lays out the figures that actually help:
 
-![左：两页课件；右：生成的阅读笔记](docs/images/slides-to-notes.png)
+![Left: two slides; right: the generated reading notes](docs/images/slides-to-notes.en.png)
 
-上图用的是工具自带的示例课件。右边是网页预览，EPUB 的内容与它完全一样。
+The example above uses the demo slides bundled with the toolkit. The right side is the web preview; the EPUB has exactly the same content.
 
-## 快速开始
+## Languages
 
-需要先装好：
+The tool and its docs support English and Chinese. **English is the default.**
 
-- **poppler**：提供 `pdftotext` 和 `pdftoppm`。
-- **pandoc 2.x**：用 2.16 测试过；3.x 能用，但会给出警告，需要检查输出。
-- **Node 18+** 和 **Python 3.9+**。
+- **The book's language** is set by `language` in `book.yaml` (default `en`; use `zh-CN` for Chinese). It decides:
+  - which prompt set the agent uses (`prompts/en/` or `prompts/zh/`);
+  - the interface text in the web preview and the EPUB ("Contents" / "目录", …);
+  - which closing sections the book edition must have;
+  - whether the traditional-character check runs.
+- **New Chinese project**: `python3 -I tools/init.py ~/books/ml-final --language zh-CN`.
+- **One book in both languages**: add an edition under `editions:` with its own `language`. The demo project does exactly this.
+- **Docs**: English in this file and [AGENTS.md](AGENTS.md); Chinese in [README.zh-CN.md](README.zh-CN.md) and [AGENTS.zh-CN.md](AGENTS.zh-CN.md).
+
+## Quick start
+
+Install first:
+
+- **poppler**, for `pdftotext` and `pdftoppm`.
+- **pandoc 2.x**. Tested with 2.16; 3.x works but prints a warning, so check the output.
+- **Node 18+** and **Python 3.9+**.
 
 ```bash
-brew install poppler pandoc        # macOS；Linux 用对应的包管理器
+brew install poppler pandoc        # macOS; use your package manager on Linux
 ```
 
 ```bash
@@ -38,57 +53,74 @@ make deps                          # npm install + pip install -r requirements.t
 ```
 
 ```bash
-make demo                          # 用自带的两页示例课件跑一遍完整流程
+make demo                          # run the whole pipeline on the two bundled demo slides
 ```
 
-跑完以后：
+Afterwards:
 
-- 电子书在 `examples/demo/output/`：`demo-notes.epub` 是阅读版，`demo-notes-book.epub` 是书本版。
-- 网页预览在 `examples/demo/work/web/main/index.html`。
+- The EPUBs are in `examples/demo/output/`: `demo-notes.epub` (English) and `demo-notes-zh.epub` (Chinese).
+- The web previews are at `examples/demo/work/web/main/index.html` (English) and `work/web/zh/index.html` (Chinese).
 
-## 做一本新书
+## Making a new book
 
-### 1. 新建项目，放入课件
+### 1. Create a project and add the slides
 
 ```bash
-python3 -I tools/init.py ~/books/ml-final --title "机器学习 · 复习笔记" --device scribe-11
+python3 -I tools/init.py ~/books/ml-final --title "Machine Learning · Revision Notes" --device scribe-11
 ```
 
 ```bash
 cp ~/Downloads/lectures/*.pdf ~/books/ml-final/sources/
 ```
 
-`init.py` 会建好固定的目录结构（见[项目结构](#项目结构)），并生成一份带注释的 `book.yaml`。设备可选 `scribe-11`、`scribe-10`、`paperwhite-7`、`paperwhite-6.8`、`kindle-6`、`colorsoft-7`。
+`init.py` creates the fixed folder layout (see [Project layout](#project-layout)) and a commented `book.yaml`. Devices: `scribe-11`, `scribe-10`, `paperwhite-7`, `paperwhite-6.8`, `kindle-6`, `colorsoft-7`.
 
-### 2. 提取文字和页面图
+### 2. Extract text and page images
 
 ```bash
 make extract P=~/books/ml-final
 ```
 
-这一步会把每页渲染成 80 dpi 的预览图（给 Agent 看）和 220 dpi 的高清图（裁图用），同时提取文字。PPTX 会被解包，并列出每页用到的图片。
+Each page is rendered twice: an 80 dpi preview for the agent to read, and a 220 dpi image for cropping. The text is extracted too. PPTX files are unpacked, with a list of the images each slide uses.
 
-### 3. 让 Agent 写笔记、配图（需要判断的步骤）
+### 3. Let the agent write notes and add figures (the judgement steps)
 
-最省事的做法是直接告诉 Agent：
+The simplest way is to tell your agent:
 
-> 用 Z2kindle（工具在 `<本仓库路径>`）把 `~/books/ml-final` 做成 Kindle 笔记。先读 `AGENTS.md`。
+> Use Z2kindle (the toolkit is at `<path to this repo>`) to turn `~/books/ml-final` into Kindle notes. Read `AGENTS.md` first.
 
-Agent 会按 [AGENTS.md](AGENTS.md) 依次完成：写阅读笔记（`prompts/summarize.md`）→ 选图、裁图、排版（`prompts/figures.md`）→ 可选的书本版改写（`prompts/book.md`），每一步之后都会跑校验。
+Following [AGENTS.md](AGENTS.md), the agent does three steps, running the checks after each one:
 
-**用 Claude Code 的话**，还可以装上自带的 skill，它会自动把章节分组，派给多个子任务并行处理：
+1. writes the reading notes (`summarize`);
+2. chooses, crops and lays out figures (`figures`);
+3. optionally, rewrites the notes as a book edition (`book`).
+
+`tools/prompt.py` prints each step's prompt with all placeholders filled. It picks the English or Chinese template from the book's language:
+
+```bash
+python3 -I tools/prompt.py ~/books/ml-final summarize --chapters L1_Intro,L2_Regression
+```
+
+**With Claude Code**, you can also install the bundled skill. It groups chapters and hands them to parallel sub-agents automatically:
 
 ```bash
 ln -s "$PWD/skill/z2kindle" ~/.claude/skills/z2kindle
 ```
 
-**配图是怎么做的**：Agent 先看带坐标网格的页面，确定裁剪框；`figtool` 再从高清图上裁出来，自动去掉白边：
+**How figures are made**: the agent views the page with a coordinate grid and chooses a crop box. `figtool` then cuts the figure from the hi-res render and trims the white margins:
 
-![figtool：坐标网格和裁图结果](docs/images/figure-crop.png)
+![figtool: coordinate grid and the cropped result](docs/images/figure-crop.en.png)
 
-每张图有四种版式可选：整行宽 `.full`、居中半宽 `.half`、右侧环绕 `.side`、两图并排 `.pair`。具体怎么选，写在 `prompts/figures.md` 里。
+Each figure gets one of four layouts:
 
-### 4. 校验、构建
+- `.full`: full text width;
+- `.half`: centred, about 64% of the width;
+- `.side`: floats right, with the text wrapping around it;
+- `.pair`: two figures side by side.
+
+`prompts/en/figures.md` explains when to use each.
+
+### 4. Check and build
 
 ```bash
 make check P=~/books/ml-final
@@ -98,186 +130,192 @@ make check P=~/books/ml-final
 make build P=~/books/ml-final
 ```
 
-- **校验**：检查图片路径、图号是否连续、正文是否引用了每张图、`:::` 和 `$$` 是否配对、有没有裸露的 HTML 标签、有没有繁体字。有问题时退出码为 1。
-- **构建**：生成所有版本的 EPUB，放到 `output/`。如果配置里写了 `web: true`，或者构建时加 `BUILD_ARGS=--web`，还会把网页预览生成到 `work/web/<版本>/`。
+- **Check** looks at image paths, consecutive figure numbering, an in-text reference to every figure, balanced `:::` and `$$`, bare HTML tags, and (for Chinese books) traditional characters. It exits with code 1 when something fails.
+- **Build** writes every edition's EPUB to `output/`. With `web: true` in the config, or `BUILD_ARGS=--web`, it also writes the web preview to `work/web/<edition>/`.
 
-### 5. 发到 Kindle
+### 5. Send it to your Kindle
 
-用 **Send to Kindle**（网页、邮件或桌面应用都可以）发送 `output/` 里的 EPUB。直接用 USB 把 EPUB 拷进 Kindle 是不行的。
+Send the EPUB from `output/` with **Send to Kindle** (the web page, email or the desktop app). Copying an EPUB to a Kindle over USB does not work.
 
-## 项目结构
+## Project layout
 
-一本书的所有东西都放在同一个文件夹里，结构固定：
+Everything for one book lives in one folder, always laid out the same way:
 
 ```
 <project>/
-  book.yaml            唯一的配置：书名、设备、封面、元数据，以及各个版本
-  sources/             输入：课件 .pdf / .pptx
-  notes/               主版本的章节 Markdown，每章一个文件（唯一源文件）
-  notes_<版本>/        其他版本的章节，例如 notes_book/
-  figs/<stem>/*.png    裁好的图，各版本共用
-  front/               前言、Overview、自定义封面图（可选）
-  work/                中间结果，随时可以删掉重建
-                         text/ img/ hires/ pptx/ grid/ manifest.json   提取结果
-                         epub-<版本>/   EPUB 构建文件（公式图片、封面、元数据）
-                         covers/<版本>/ 封面预览
-                         web/<版本>/    网页预览（只在要求时生成）
-  output/              最终成品：<output_name>.epub、<output_name>-<版本>.epub
+  book.yaml            the only config: title, device, cover, metadata, editions
+  sources/             input: lecture slides (.pdf / .pptx)
+  notes/               main edition: one Markdown file per lecture (the single source of truth)
+  notes_<edition>/     other editions, e.g. notes_book/ or notes_zh/
+  figs/<stem>/*.png    cropped figures, shared by all editions
+  front/               preface, overview, custom cover image (optional)
+  work/                intermediates, safe to delete and rebuild:
+                         text/ img/ hires/ pptx/ grid/ manifest.json   extraction output
+                         epub-<edition>/   EPUB build files (formula images, cover, metadata)
+                         covers/<edition>/ cover previews
+                         web/<edition>/    web preview (only when asked for)
+  output/              deliverables: <output_name>.epub, <output_name>-<edition>.epub
 ```
 
-- **输入**只放在 `sources/`。
-- **需要人或 Agent 编辑的**只有 `book.yaml`、`notes*/`、`figs/`、`front/`。
-- **成品**只出现在 `output/`。
-- `work/` 里的内容都能重新生成，备份或分享项目时可以不带。
+- **Input** goes only into `sources/`.
+- **Only these are edited** by you or the agent: `book.yaml`, `notes*/`, `figs/` and `front/`.
+- **Deliverables** appear only in `output/`.
+- Everything in `work/` can be regenerated, so you can leave it out when backing up or sharing a project.
 
-## 配置：book.yaml
+## Configuration: book.yaml
 
 ```yaml
-title: 机器学习 · 复习笔记
-subtitle: L1–L18 课件阅读版
-language: zh-CN
-device: scribe-11              # 见 profiles/devices.yaml
-front: front/overview.md       # 前言（可选）
-output_name: ML_Review         # -> output/ML_Review.epub（默认用文件夹名）
-web: false                     # true = 同时生成网页预览
+title: Machine Learning · Revision Notes
+subtitle: Lectures 1–18
+language: en                   # en (default) or zh-CN; picks prompts and interface text
+device: scribe-11              # see profiles/devices.yaml
+front: front/overview.md       # preface (optional)
+output_name: ML_Review         # -> output/ML_Review.epub (default: the folder name)
+web: false                     # true = also build the web preview
 
-metadata:                      # 写进 EPUB 的书籍信息，全部可选
-  author: 张三                 # 也可以是列表
-  date: 2026-12-01             # 不写就用构建当天的日期
+metadata:                      # embedded in the EPUB; every field optional
+  author: Jane Doe             # or a list
+  date: 2026-12-01             # default: the build date
   publisher: ""
-  description: 一句话简介
-  subject: [机器学习, 复习]
-  rights: 仅供个人学习使用
-  # contributors: [{name: 李四, role: editor}]
-  # series: CSE475             # 丛书名，配合 series_index
-  # identifier: 978-...        # ISBN；不写就生成固定的 UUID
+  description: One-sentence blurb
+  subject: [machine learning, revision]
+  rights: For personal study only
+  # contributors: [{name: John Roe, role: editor}]
+  # series: CS101              # collection name, with series_index
+  # identifier: 978-...        # ISBN; omit for a stable generated UUID
 
 cover:
   style: abstract              # plain | figures | abstract
-  art: mosaic                  # abstract：flow | contours | mosaic | orbits
-  palette: mono                # mono | ink | forest | dusk | [色值列表]
-  heading: 机器学习
-  subheading: 复习笔记
+  art: mosaic                  # abstract: flow | contours | mosaic | orbits
+  palette: mono                # mono | ink | forest | dusk | [list of colours]
+  heading: Machine Learning
+  subheading: Revision Notes
 
-editions:                      # 其他版本：只写和主版本不同的设置
+editions:                      # more editions: only what differs from the main one
   book:
-    title: 机器学习 · 书本版
-    notes: notes_book          # 默认就是 notes_<版本名>
+    title: Machine Learning · Book Edition
+    notes: notes_book          # default: notes_<edition name>
     front: front/preface_book.md
-    cover: {subheading: 书本版}
+    cover: {subheading: Book Edition}
+  zh:
+    language: zh-CN            # a Chinese edition of the same book
+    title: 机器学习 · 复习笔记
 ```
 
-### 多个版本
+### Editions
 
-`editions:` 下的每个版本共用 `sources/` 和 `figs/`，只覆盖自己写出的设置（`cover` 和 `metadata` 按字段合并）。
+Every edition under `editions:` shares `sources/` and `figs/`, and overrides only the settings it lists. `cover` and `metadata` are merged field by field.
 
-- `make build` 会构建全部版本；只构建一个版本时加 `E=book`。
-- 校验书本版：`make check P=… E=book CHECK_ARGS="--book --baseline main"`。这会额外检查章末的小结、关键公式、术语对照是否齐全，以及主版本里的公式和图有没有丢。
+- `make build` builds every edition; add `E=book` to build just one.
+- Check a book edition with `make check P=… E=book CHECK_ARGS="--book --baseline main"`. This also checks:
+  - that the closing sections are present: Summary, Key Formulas and Key Terms for English books; 本讲小结, 关键公式 and 术语对照 for Chinese books;
+  - that no formula or figure from the main edition was lost.
 
-### 书籍元数据
+### Book metadata
 
-`metadata:` 里的信息会写进 EPUB，在 Kindle 的书籍详情里能看到，也会出现在 EPUB 扉页上。另外：
+Everything under `metadata:` is written into the EPUB. You see it in the Kindle's book details, and on the EPUB title page. In addition:
 
-- 作者会印在封面上。不想印的话，在 `cover:` 里写 `show_author: false`。
-- 网页预览的目录页会在书名下显示"作者 · 出版社 · 日期"。
-- **标识符**默认按项目和版本生成，并且固定不变：同一本书重新构建、重新发送，Kindle 会把它当成同一本书。
+- The author is printed on the cover. To turn that off, add `show_author: false` under `cover:`.
+- The web preview's contents page shows "author · publisher · date" under the title.
+- **The identifier** is generated from the project and the edition, and stays the same across builds. When you rebuild and resend a book, the Kindle treats it as the same book.
 
-### 封面
+### Cover
 
-封面按设备屏幕尺寸生成，共有三种样式：
+The cover is sized to the device screen, in one of three styles:
 
-| 样式 | 效果 |
+| Style | Result |
 |---|---|
-| `plain`（默认） | 白底黑字标题页，附章节目录；章节多时自动分两栏 |
-| `figures` | 标题加一组课件配图拼贴。`figures: auto` 会从各章自动挑图，也可以写成图片路径列表；`count: 1–9` 控制张数 |
-| `abstract` | 生成式抽象图案，上面压一张标题卡片。图案用 `art` 选，配色用 `palette` 选，换一个 `seed` 数字就换一种变化 |
+| `plain` (default) | Black-on-white title page with the chapter list; long lists switch to two columns |
+| `figures` | Title plus a collage of slide figures. `figures: auto` picks one figure from each chapter; or give a list of image paths. `count: 1–9` sets how many |
+| `abstract` | Generative art under a title card. `art` picks the pattern, `palette` the colours, and a different `seed` number gives a new variation |
 
-先把所有样式都渲染出来比较一下，再决定用哪个：
+Render every style first, then choose:
 
 ```bash
-make covers P=~/books/ml-final     # 输出到 work/covers/<版本>/，contact.png 是对比总览
+make covers P=~/books/ml-final     # writes work/covers/<edition>/; contact.png compares them
 ```
 
-![示例书的 7 种封面](docs/images/covers.png)
+![The demo book's seven covers](docs/images/covers.en.png)
 
-想用自己的图片做封面，就写 `cover.image: front/cover.png`，它的优先级最高。
+To use your own image, set `cover.image: front/cover.png`. It overrides everything else.
 
-### 设备
+### Devices
 
-`profiles/devices.yaml` 为每种设备定义了以下参数：
+`profiles/devices.yaml` defines these parameters for each device:
 
-- **屏幕分辨率**：决定封面的尺寸。
-- **公式像素密度** `px_per_em`：决定公式图片的清晰度。
-- **配图最大宽度** `figure_max_width`：裁出来的图超过这个宽度会被缩小。
-- **是否彩色**：决定封面的默认配色。
+- **screen resolution**: sets the cover size;
+- **formula pixel density** `px_per_em`: sets how sharp formula images are;
+- **maximum figure width** `figure_max_width`: cropped figures wider than this are scaled down;
+- **colour**: sets the default cover palette.
 
-正文由 Kindle 自己重排（字体、字号、行距都由阅读设置决定），所以同一份内容对所有 Kindle 都通用。换设备时，真正需要改的只有封面尺寸，改 `device:` 就会自动处理。要支持新设备，在这个文件里加一项即可。
+The Kindle reflows the text itself (font, size and line spacing come from the reader's settings), so the same content works on every Kindle. The only thing that really has to change between devices is the cover size, and changing `device:` handles that. To support a new device, add an entry to the file.
 
-## 笔记格式
+## Note format
 
-每章一个 Markdown 文件，例如 `notes/L3_Generalization.md`：
+One Markdown file per lecture, e.g. `notes/L3_Generalization.md`:
 
 ````markdown
-# L3 · 模型泛化（Model Generalization）
+# L3 · Model Generalization
 
-> **Overview：** 一段话点明本章核心论题与结论。
+> **Overview:** One paragraph stating the chapter's central question and conclusions.
 
-## 1. 欠拟合与过拟合
+## 1. Underfitting and overfitting
 
-正文……行内公式 $h_\theta(x)$，独立公式单独成段：
+Body text… inline math $h_\theta(x)$, display math in its own paragraph:
 
 $$
 J(\theta) = \frac{1}{2}\sum_{i=1}^{n}\left(h_\theta(x^{(i)}) - y^{(i)}\right)^2
 $$
 
-三种拟合的对比见图 3-1。
+Figure 3-1 compares the three fits.
 
 ::: {.fig .full}
-![图 3-1　Degree 1 / 4 / 15 的拟合结果](figs/L3_Generalization/poly_fits.png)
+![Figure 3-1. Fits of degree 1, 4 and 15](figs/L3_Generalization/poly_fits.png)
 :::
 ````
 
-- **公式**：只用 KaTeX 支持的命令。网页预览用 KaTeX 预先渲染，不需要 JavaScript。EPUB 里每个公式会转成按 em 定尺寸的图片，因为 Kindle 对 MathML 的支持不可靠。
-- **图**：用 fenced div 包住只含图片的段落，图片的 alt 文字就是图注。图号按章编号，并且要在正文里引用。
-- **提示框**（书本版常用）：`::: {.aside}` 是"延伸"框，放超出课件范围的补充；`::: {.note}` 是"注意"框，放课件里的笔误或存疑之处。
-- **尖括号记号**（比如 `<s>`）要放进反引号，否则会被当成 HTML 标签。
+- **Formulas**: use only commands KaTeX supports. The web preview pre-renders them with KaTeX, so no JavaScript is needed. In the EPUB each formula becomes an image sized in em, because Kindle's MathML support is unreliable.
+- **Figures**: a fenced div wraps a paragraph that contains only the image; the image's alt text is the caption. Figures are numbered per chapter and must be referenced in the text.
+- **Callout boxes** (mostly in the book edition): `::: {.aside}` is an "Extension" box for material beyond the slides; `::: {.note}` is a "Note" box for typos or unclear points in the slides.
+- **Angle-bracket tokens** such as `<s>` must go in backticks, otherwise they are parsed as HTML tags.
 
-## 命令速查
+## Command reference
 
-所有命令都在本仓库根目录运行。`P=` 是项目文件夹，`E=` 是版本名（可选）。
+Run every command from the repository root. `P=` is the project folder; `E=` is an optional edition name.
 
-| 命令 | 作用 |
+| Command | What it does |
 |---|---|
-| `make deps` | 安装 Node 和 Python 依赖 |
-| `python3 -I tools/init.py <project> --title T --device D` | 新建项目 |
-| `make extract P=…` | 提取文字和页面图到 `work/` |
-| `python3 -I tools/figtool.py <project> grid <stem> <页码>` | 生成带坐标网格的页面图 |
-| `python3 -I tools/figtool.py <project> crop <stem> <页码> x0 y0 x1 y1 <名字>` | 按预览图坐标裁图，保存到 `figs/<stem>/` |
-| `make check P=… [E=…]` | 校验笔记 |
-| `make build P=… [E=…]` | 构建 EPUB 到 `output/`（`BUILD_ARGS=--web` 同时生成网页预览） |
-| `make covers P=… [E=…]` | 渲染全部封面样式用来比较 |
-| `make demo` / `make clean-demo` | 跑示例 / 清理示例生成的文件 |
+| `make deps` | install Node and Python dependencies |
+| `python3 -I tools/init.py <project> --title T --device D [--language zh-CN]` | create a project (English by default) |
+| `make extract P=…` | extract text and page images into `work/` |
+| `python3 -I tools/prompt.py <project> summarize\|figures\|book --chapters …` | print a stage's prompt with placeholders filled, in the book's language |
+| `python3 -I tools/figtool.py <project> grid <stem> <page>` | page image with a coordinate grid |
+| `python3 -I tools/figtool.py <project> crop <stem> <page> x0 y0 x1 y1 <name>` | crop by preview coordinates into `figs/<stem>/` |
+| `make check P=… [E=…]` | check the notes |
+| `make build P=… [E=…]` | build EPUBs into `output/` (`BUILD_ARGS=--web` adds the web preview) |
+| `make covers P=… [E=…]` | render every cover style for comparison |
+| `make demo` / `make clean-demo` | run the demo / remove its generated files |
 
-## 仓库结构
+## Repository layout
 
 ```
-AGENTS.md            给 AI Agent 的完整操作手册
-tools/               Python：init、extract、figtool、check、z2k_project（读取配置）
-build/               Node：build（总入口）、build_epub、build_web、cover、lib、styles/
-prompts/             需要判断的步骤所用的提示词模板：summarize、figures、book
-profiles/            设备参数 devices.yaml
+AGENTS.md            operating manual for AI agents (Chinese: AGENTS.zh-CN.md)
+tools/               Python: init, extract, figtool, check, prompt, z2k_project (config)
+build/               Node: build (entry point), build_epub, build_web, cover, lib, styles/
+prompts/en, zh/      prompt templates for the judgement steps: summarize, figures, book
+profiles/            device parameters, devices.yaml
 skill/z2kindle/      Claude Code skill
-examples/demo/       示例项目（课件由脚本现场生成，不含任何真实课程内容）
-docs/images/         README 用图（src/ 里是可编辑的源文件）
+examples/demo/       demo project: English main edition + Chinese edition (slides generated by a script; no real course content)
+docs/images/         README images in both languages (regenerate with src/make_images.py)
 ```
 
-## 注意事项
+## Caveats
 
-- **成本**：写笔记、配图、书本版这三步都要逐页看图。粗略估计，每 15–20 页课件每一步约用 15–20 万 Agent token；一次实际使用中，18 讲约 320 页课件三步合计用了约三百万 token。处理大批课件前，先估一下时间和费用。
-- **版权**：课件和由它生成的笔记属于原作者，不要提交到公开仓库。可以分享的是工具本身。
-- **人工复核**：Agent 写出来的内容可能有误。`check.py` 只检查结构问题，内容是否准确需要人来看。EPUB 最终的效果要在真机上确认。
-- **PPTX 的限制**：PPT 里用形状拼出来的图（不是图片文件）没法裁剪。
+- **Cost**: writing notes, adding figures and the book edition each read every slide image. As a rough guide, each step uses about 150–200k agent tokens per 15–20 slide pages. In one real run, 18 lectures (about 320 pages) took about three million tokens for all three steps. Estimate time and cost before processing a large batch.
+- **Copyright**: the slides, and the notes generated from them, belong to their author. Do not commit them to a public repository. The toolkit itself is what you can share.
+- **Human review**: the agent can make mistakes. `check.py` only checks structure; whether the content is correct needs a human. Check the final EPUB on a real device.
+- **PPTX limits**: diagrams drawn with PowerPoint shapes (rather than image files) cannot be cropped.
 
-## 许可证
+## License
 
-MIT（见 `LICENSE`）。依赖的许可证：KaTeX（MIT）、MathJax（Apache-2.0）、resvg-js（MPL-2.0）、Pandoc（GPL，作为外部命令调用）、poppler（GPL，作为外部命令调用）。
+MIT (see `LICENSE`). Dependency licenses: KaTeX (MIT), MathJax (Apache-2.0), resvg-js (MPL-2.0), Pandoc (GPL, called as an external program), poppler (GPL, called as an external program).

@@ -1,5 +1,7 @@
 # AGENTS.md — operating Z2kindle
 
+English | [简体中文](AGENTS.zh-CN.md)
+
 This file is for AI coding agents (Claude Code, Codex, Cursor, Gemini CLI, …). It is the full
 operating manual: read it before using the toolkit. Humans: see [README.md](README.md).
 
@@ -11,7 +13,7 @@ rendered formulas and laid-out slide figures, plus optionally a "book" edition a
 | Kind of step | Who does it | Examples |
 |---|---|---|
 | Deterministic | Scripts in `tools/` and `build/` | extraction, figure cropping, checks, EPUB/web build |
-| Judgement | **You**, following the prompt templates in `prompts/` | writing notes, choosing figures and layouts, the book-style rewrite |
+| Judgement | **You**, following the prompt templates in `prompts/en/` or `prompts/zh/` | writing notes, choosing figures and layouts, the book-style rewrite |
 
 You must be able to **view images**: the slide content is mostly in images, so you read page
 renders directly; there is no OCR step. If you cannot read images, stop and tell the user.
@@ -49,8 +51,11 @@ Rules:
 2. **Target device**: one of `scribe-11`, `scribe-10`, `paperwhite-7`, `paperwhite-6.8`,
    `kindle-6`, `colorsoft-7` (see `profiles/devices.yaml`). Ask if unknown.
 3. **Title** and **author name** for the metadata. **Never guess a person's name.**
-4. **Language and style.** The prompts default to Simplified Chinese with English terms. If the
-   user wants something else, edit the 写作要求 section of the prompt you hand out.
+4. **Book language**: `language:` in `book.yaml`, `en` by default, or `zh-CN` for Chinese. It
+   selects the prompt set (`prompts/en/` writes English notes; `prompts/zh/` writes Simplified
+   Chinese with English terms glossed), the web/EPUB interface strings, and the required closing
+   headings of the book edition. For other style wishes, edit the "Writing rules" (写作要求)
+   section of the prompt you hand out.
 5. **Which editions** are wanted: the reading notes always; the book-style edition is optional.
 6. **Cost.** Every judgement stage reads every slide image: roughly 150–200k tokens per 15–20
    slide pages per stage. State the estimate before processing a large deck.
@@ -63,7 +68,7 @@ Python with Pillow and PyYAML, and `npm install` done in `$TK` (`make deps` does
 ### 0. Create the project
 
 ```bash
-python3 -I tools/init.py "$P" --title "…" --device scribe-11
+python3 -I tools/init.py "$P" --title "…" --device scribe-11 [--language zh-CN]
 ```
 
 Copy the slides into `$P/sources/`. Edit `$P/book.yaml`: fill `metadata.author` and any other
@@ -80,11 +85,13 @@ number in each file name (natural sort), or an explicit `chapters:` list in `boo
 
 ### 2. Reading notes (judgement)
 
-Template: `prompts/summarize.md`. Output: `$P/notes/<stem>.md`, one file per source. Use the same
-stem as the source when you can.
+Template: `prompts/<lang>/summarize.md`. Output: `$P/notes/<stem>.md`, one file per source. Use
+the same stem as the source when you can.
 
-- Fill the placeholders (see the [placeholder table](#prompt-placeholders)) and follow the
-  template exactly.
+- Get the filled prompt with
+  `python3 -I tools/prompt.py "$P" summarize --chapters <stem1>,<stem2>`. It picks the template
+  language from `book.yaml` and fills every placeholder (see the
+  [placeholder table](#prompt-placeholders)). Follow it exactly.
 - View **every** page image in `work/img/<stem>/`. For a PPTX source, read `work/text/<stem>.txt`
   and the media files instead.
 - **If you can run sub-agents in parallel**, group chapters at about 40–60 slide pages per
@@ -93,8 +100,9 @@ stem as the source when you can.
 
 ### 3. Figures (judgement + `figtool`)
 
-Template: `prompts/figures.md`. Do **one chapter first** as a trial. Build it with `--web`, look at
-it, and fix your approach. Then do the rest, passing the approved chapter as `{EXAMPLE}`.
+Template: `prompts/<lang>/figures.md`; get it with
+`tools/prompt.py "$P" figures --chapters … [--example <approved chapter>]`. Do **one chapter first**
+as a trial. Build it with `--web`, look at it, and fix your approach. Then do the rest, passing the approved chapter as `{EXAMPLE}`.
 
 ```bash
 python3 -I tools/figtool.py "$P" grid <stem> <page>
@@ -127,11 +135,12 @@ described in the template.
        title: "…"
        notes: notes_book
        front: front/preface_book.md
-       cover: {subheading: 书本版}
+       cover: {subheading: Book Edition}
    ```
 
-2. Template: `prompts/book.md`, with `{SOURCE_NOTES}=$P/notes`, `{OUT_NOTES}=$P/notes_book` and
-   `{EDITION}=book`.
+2. Template: `prompts/<lang>/book.md`; get it with
+   `tools/prompt.py "$P" book --edition book --chapters … [--example …]`, which fills
+   `{SOURCE_NOTES}`, `{OUT_NOTES}`, `{EDITION}` and `{OUTLINE}` for you.
 3. Trial one chapter first, then do the rest.
 4. Write `front/preface_book.md` yourself, based on the finished chapters.
 
@@ -155,7 +164,9 @@ and run the check again. Exit code 0 means everything passed. The check covers:
 - no bare HTML-like tags;
 - no traditional Chinese characters (needs `opencc-python-reimplemented`; skipped with a note if it is missing);
 - with `--baseline`: no display formula or figure lost compared with the baseline edition;
-- with `--book`: the required closing sections are present.
+- with `--book`: the required closing sections are present (Summary / Key Formulas / Key Terms for
+  English books; 本讲小结 / 关键公式 / 术语对照 for Chinese books; override with
+  `book_required_headings:`).
 
 ### 5. Build
 
@@ -189,6 +200,8 @@ lists each failing formula. Fix those formulas in the notes and rebuild.
 
 ## Prompt placeholders
 
+`tools/prompt.py` fills all of these. When filling them by hand:
+
 | Placeholder | Value | Used in |
 |---|---|---|
 | `{PROJECT}` | absolute project path `$P` | all |
@@ -213,8 +226,9 @@ lists each failing formula. Fix those formulas in the notes and rebuild.
 - **Keep formulas.** Transcribe every formula as KaTeX-compatible LaTeX; check sub- and
   superscripts against the image. Later stages must not change formulas, except to fix a flagged
   typo.
-- **Simplified Chinese only** (default style): never use traditional characters. Wrap
-  angle-bracket tokens such as `<s>` in backticks, otherwise they are parsed as HTML.
+- **Language**: write in the book's language. For Chinese books (`zh-CN`), use Simplified
+  characters only, never traditional. Wrap angle-bracket tokens such as `<s>` in backticks,
+  otherwise they are parsed as HTML.
 - **Copyright**: the slides and the notes generated from them belong to the original author.
   Never commit or publish them to a public place. Only the toolkit is shareable.
 - **Never guess personal data** such as author names. Ask the user.
@@ -223,11 +237,11 @@ lists each failing formula. Fix those formulas in the notes and rebuild.
 
 | Symptom | Cause / fix |
 |---|---|
-| Web chapter TOC appears in an odd place | The chapter summary must be a blockquote starting with `**Overview：**`. Without it, the TOC goes before the first `##`. |
+| Web chapter TOC appears in an odd place | The chapter summary must be a blockquote starting with `**Overview:**` (or `**Overview：**`). Without it, the TOC goes before the first `##`. |
 | Text struck through or swallowed; EPUB XML error | Bare `<s>`/`<eos>` in the text. Put it in backticks. |
 | "sources without notes" warning | Notes are matched to sources by their first number. A note may use a different stem (e.g. a shorter name) as long as the number matches. |
-| `figure numbering not 1..n` | Captions must run `图 3-1, 3-2, …` in document order. Renumber the captions and the in-text references together. |
-| `not referenced in text` | Add a reference like "（见图 3-2）" in the paragraph that discusses the figure. |
+| `figure numbering not 1..n` | Captions must run `Figure 3-1, 3-2, …` (Chinese: `图 3-1, …`) in document order. Renumber the captions and the in-text references together. |
+| `not referenced in text` | Add a reference like "(see Figure 3-2)" / "（见图 3-2）" in the paragraph that discusses the figure. |
 | Crop looks offset | Coordinates must come from the grid image of the **same page**. Preview sizes can differ between decks; `figtool` handles the scaling. |
 | pandoc 3.x warning | The toolkit is tested with pandoc 2.16. 3.x usually works, but inspect the figure markup in the output. |
 | A wide figure looks bad as `.side` | Use `.side` only for roughly square images followed by a long plain paragraph; otherwise use `.half`. |
@@ -237,8 +251,10 @@ lists each failing formula. Fix those formulas in the notes and rebuild.
 
 - **New device**: add an entry to `profiles/devices.yaml` with `screen`, `px_per_em`,
   `figure_max_width` and `color`.
-- **Different language or style**: edit the 写作要求 sections in `prompts/*.md`, and set
-  `language:` in `book.yaml`. The traditional-character check only runs for `zh-CN` / `zh-Hans`.
+- **Languages**: English (`prompts/en/`) and Chinese (`prompts/zh/`) are built in. For another
+  language, add `prompts/<code>/` and extend the language choice in `tools/prompt.py`, plus the
+  `I18N` strings in `build/lib.js`. The traditional-character check only runs for `zh-CN` /
+  `zh-Hans`.
 - **New cover art**: add a branch to `art()` in `build/cover.js` and add its name to `ARTS`.
 - **Demo / regression test**: `make clean-demo && make demo` must end with both EPUBs built.
 
@@ -247,15 +263,15 @@ lists each failing formula. Fix those formulas in the notes and rebuild.
 ```
 tools/init.py         scaffold a project            tools/extract.py   stage 1
 tools/figtool.py      grid / crop / media / size     tools/check.py     validation
-tools/z2k_project.py  config + editions (Python)
+tools/prompt.py       fill a prompt template      tools/z2k_project.py  config + editions (Python)
 build/build.js        build entry (all editions; --web optional)
 build/build_epub.js   EPUB: MathJax -> PNG formulas, cover, metadata
 build/build_web.js    web preview: KaTeX pre-rendered, static, offline
 build/cover.js        covers: plain / figures / abstract; --gallery
 build/lib.js          config + editions + metadata (Node)
 build/styles/         web.css, epub.css (figure layouts, callout boxes, title page)
-prompts/              summarize.md, figures.md, book.md
+prompts/en/, zh/      summarize.md, figures.md, book.md (English / Chinese)
 profiles/devices.yaml device parameters
 skill/z2kindle/       Claude Code skill (same workflow, with sub-agent fan-out)
-examples/demo/        self-contained demo project (slides generated by a script)
+examples/demo/        demo project: English main edition + `zh` edition (slides generated by a script)
 ```

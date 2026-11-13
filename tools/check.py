@@ -11,7 +11,8 @@ Per chapter (notes/<stem>.md) it checks:
   * --baseline EDITION|DIR: every display formula and figure path of that edition's (or DIR's)
     <stem>.md is still present
     (use when rewriting notes, e.g. the book-style pass)
-  * --book: required headings (book.yaml `book_required_headings`, default 本讲小结/关键公式/术语对照)
+  * --book: required headings (book.yaml `book_required_headings`; default Summary / Key Formulas /
+    Key Terms, or 本讲小结 / 关键公式 / 术语对照 for Chinese books)
 Also reports figure files under figs/ that no chapter uses. Exit code 1 if any check fails.
 """
 import argparse
@@ -82,7 +83,9 @@ def check_chapter(p, stem, text, args, t2s):
             if bf != sorted(x for _, x in figs):
                 issues.append('figure set differs from baseline')
     if args.book:
-        for h in p.cfg.get('book_required_headings', ['本讲小结', '关键公式', '术语对照']):
+        zh = str(p.cfg.get('language', 'en')).lower().startswith('zh')
+        default = ['本讲小结', '关键公式', '术语对照'] if zh else ['Summary', 'Key Formulas', 'Key Terms']
+        for h in p.cfg.get('book_required_headings', default):
             if not re.search(r'^#{2,4} .*' + re.escape(h), text, re.M):
                 issues.append(f'missing heading containing "{h}"')
     return issues, len(figs)

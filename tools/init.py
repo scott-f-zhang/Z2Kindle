@@ -1,6 +1,6 @@
 """Stage 0 — scaffold a new book project.
 
-    python3 -I tools/init.py <project_dir> [--title T] [--device scribe-11] [--language zh-CN]
+    python3 -I tools/init.py <project_dir> [--title T] [--device scribe-11] [--language en|zh-CN]
 
 Creates the standard layout and a book.yaml you can edit:
   <project>/book.yaml  sources/  notes/  figs/  front/  work/  output/
@@ -49,7 +49,7 @@ metadata:
   # publisher: ""
   # description: ""         # blurb shown in book details
   # subject: [keyword1, keyword2]
-  # rights: ""              # e.g. "仅供个人学习使用"
+  # rights: ""              # e.g. "For personal study only"
   # series: ""              # collection name; series_index: 1
   # identifier: ""          # ISBN, or leave unset for a stable generated UUID (re-sent books replace the old copy)
 
@@ -65,7 +65,7 @@ web: false                  # true = also build the web preview into work/web/<e
 #     notes: notes_book
 #     front: front/preface_book.md
 #     title: "..."
-#     cover: {{subheading: 书本版}}
+#     cover: {{subheading: Book edition}}
 """
 
 
@@ -74,7 +74,7 @@ def main():
     ap.add_argument('project')
     ap.add_argument('--title', default='Untitled Notes')
     ap.add_argument('--device', default='scribe-11')
-    ap.add_argument('--language', default='zh-CN')
+    ap.add_argument('--language', default='en', help='book language, e.g. en (default) or zh-CN; picks prompts/en or prompts/zh')
     a = ap.parse_args()
     with open(os.path.join(TOOLKIT, 'profiles', 'devices.yaml'), encoding='utf-8') as f:
         devices = yaml.safe_load(f)

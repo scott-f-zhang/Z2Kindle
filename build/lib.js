@@ -43,7 +43,7 @@ function loadProject(target, edition = MAIN) {
   const profiles = yaml.load(fs.readFileSync(path.join(TOOLKIT, 'profiles/devices.yaml'), 'utf8'));
   const deviceId = cfg.device || 'scribe-11';
   if (!profiles[deviceId]) throw new Error(`unknown device "${deviceId}" (see profiles/devices.yaml)`);
-  const lang = cfg.language || 'zh-CN';
+  const lang = cfg.language || 'en';
   const ed = edition || MAIN;
   const p = {
     root, cfg, raw, lang, id: ed, edition: ed, editions: editionNames(raw),

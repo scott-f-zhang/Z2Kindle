@@ -30,7 +30,7 @@ cover:
   style: plain              # plain | figures | abstract   (preview all: make covers P=<project>)
   # figures: auto           # figures style: auto-pick from the notes, or a list of image paths
   # count: 6                # figures style: how many tiles (1-9)
-  # art: mosaic             # abstract style: flow | contours | mosaic | orbits
+  # art: mosaic             # abstract style: flow | contours | mosaic | orbits | network
   # palette: mono           # abstract style: mono | ink | forest | dusk | [list of hex colours]
   # seed: 1                 # abstract style: change to get a different variation
   heading: {title}

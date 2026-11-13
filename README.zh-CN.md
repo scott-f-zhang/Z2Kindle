@@ -167,7 +167,7 @@ metadata:                      # 写进 EPUB 的书籍信息，全部可选
 
 cover:
   style: abstract              # plain | figures | abstract
-  art: mosaic                  # abstract：flow | contours | mosaic | orbits
+  art: mosaic                  # abstract：flow | contours | mosaic | orbits | network
   palette: mono                # mono | ink | forest | dusk | [色值列表]
   heading: 机器学习
   subheading: 复习笔记

@@ -46,8 +46,9 @@ def check_chapter(p, stem, text, args, t2s):
     issues = []
     if len(re.findall(r'^# ', text, re.M)) != 1:
         issues.append('needs exactly one "# " title')
-    opens = len(re.findall(r'^:{3,}\s*\{', text, re.M)) + len(re.findall(r'^:{3,}\s*[\w.-]+\s*$', text, re.M))
-    closes = len(re.findall(r'^:{3,}\s*$', text, re.M))
+    # [ \t]* rather than \s*: \s also matches newlines, which made ":::\n<word>" look like an opening fence
+    opens = len(re.findall(r'^:{3,}[ \t]*\{', text, re.M)) + len(re.findall(r'^:{3,}[ \t]*[\w.-]+[ \t]*$', text, re.M))
+    closes = len(re.findall(r'^:{3,}[ \t]*$', text, re.M))
     if opens != closes:
         issues.append(f'fenced divs unbalanced ({opens} open / {closes} close)')
     if text.count('$$') % 2:

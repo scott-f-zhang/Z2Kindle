@@ -186,7 +186,7 @@ metadata:                      # embedded in the EPUB; every field optional
 
 cover:
   style: abstract              # plain | figures | abstract
-  art: mosaic                  # abstract: flow | contours | mosaic | orbits
+  art: mosaic                  # abstract: flow | contours | mosaic | orbits | network
   palette: mono                # mono | ink | forest | dusk | [list of colours]
   heading: Machine Learning
   subheading: Revision Notes

@@ -59,7 +59,7 @@ Pipeline (each stage is re-runnable):
    series, identifier). It is embedded in the EPUB, the author is printed on the cover.
 9. **Cover**: `cover.style` in book.yaml is `plain` (default), `figures` (collage of note
    figures, `figures: auto|[paths]`, `count`) or `abstract` (generative art: `art:
-   flow|contours|mosaic|orbits`, `palette`, `seed`). If the user cares about the cover, run
+   flow|contours|mosaic|orbits|network`, `palette`, `seed`). If the user cares about the cover, run
    `node $TK/build/cover.js <project> --gallery` and show them `work/covers/contact.png`
    to choose; `cover.image` overrides everything.
 10. **Deliver**: tell the user the `.epub` files in `<project>/output/` (and the web preview

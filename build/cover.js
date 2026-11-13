@@ -1,7 +1,7 @@
 // Cover generator, sized to the device screen. Three styles (book.yaml `cover.style`):
 //   plain     black-on-white title page with the chapter list (default)
 //   figures   title + a collage of figures from the notes (auto-picked or listed)
-//   abstract  title card over generative art: flow | contours | mosaic | orbits
+//   abstract  title card over generative art: flow | contours | mosaic | orbits | network
 // Used by build_epub.js; can also run alone:
 //   node build/cover.js <project> [--edition E] [--style S] [--art A] [--seed N]
 //        [--palette P] [--count N] [--out file.png]
@@ -11,7 +11,7 @@ const path = require('path');
 const { Resvg } = require('@resvg/resvg-js');
 
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-const ARTS = ['flow', 'contours', 'mosaic', 'orbits'];
+const ARTS = ['flow', 'contours', 'mosaic', 'orbits', 'network'];
 const PALETTES = {
   mono:   { bg: '#f4f4f1', ink: ['#111111', '#3a3a3a', '#6b6b6b', '#9d9d9d', '#cfcfcf'] },
   ink:    { bg: '#f3efe6', ink: ['#1d3557', '#457b9d', '#a8dadc', '#e63946', '#2a2a2a'] },
@@ -192,6 +192,51 @@ function art(kind, X) {
         out.push(`<circle cx="${cx.toFixed(0)}" cy="${cy.toFixed(0)}" r="${r.toFixed(0)}" fill="none" stroke="${pick(pal.ink)}" stroke-width="${(2 + rand() * 12) * k}"${dash} transform="rotate(${(rand() * 360).toFixed(0)} ${cx.toFixed(0)} ${cy.toFixed(0)})"/>`);
       }
     }
+  } else if (kind === 'network') {
+    // a social-network drawing: separated communities, k-nearest links inside them,
+    // preferential attachment that grows one hub per community, dashed weak ties between them
+    const gauss = () => Math.sqrt(-2 * Math.log(rand() + 1e-12)) * Math.cos(2 * Math.PI * rand());
+    const nComm = 5 + Math.floor(rand() * 2), centers = [];
+    for (let tries = 0; centers.length < nComm && tries < 2000; tries++) {   // spread communities out
+      const c = [W * (0.13 + rand() * 0.74), H * (0.40 + rand() * 0.50)];
+      if (centers.every(([x, y]) => (x - c[0]) ** 2 + (y - c[1]) ** 2 > (0.27 * W) ** 2)) centers.push(c);
+    }
+    const nodes = [];
+    centers.forEach(([cx, cy], c) => {
+      const m = 9 + Math.floor(rand() * 6), spread = (75 + rand() * 35) * k;
+      for (let i = 0; i < m; i++) nodes.push({ x: cx + gauss() * spread, y: cy + gauss() * spread, c, deg: 0 });
+    });
+    for (let i = 0; i < 12; i++) nodes.push({ x: W * (0.04 + rand() * 0.92), y: H * (0.04 + rand() * 0.94), c: -1 - i, deg: 0 });
+    const edges = new Map(), key = (i, j) => (i < j ? `${i}-${j}` : `${j}-${i}`);
+    const link = (i, j) => { if (i !== j && !edges.has(key(i, j))) { edges.set(key(i, j), [i, j]); nodes[i].deg++; nodes[j].deg++; } };
+    const d2 = (a, b) => (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
+    nodes.forEach((a, i) => {
+      const near = nodes.map((b, j) => [d2(a, b), j]).filter(([, j]) => j !== i).sort((p, q) => p[0] - q[0]);
+      for (let s = 0; s < 2; s++) link(i, near[s][1]);
+    });
+    centers.forEach((_, c) => {                                       // rich get richer inside each community
+      const mem = nodes.map((n, i) => [n, i]).filter(([n]) => n.c === c).map(([, i]) => i);
+      for (let s = 0; s < mem.length; s++) {
+        const tot = mem.reduce((z, i) => z + nodes[i].deg, 0); let r = rand() * tot, j = 0;
+        while ((r -= nodes[mem[j]].deg) > 0 && j < mem.length - 1) j++;
+        link(mem[Math.floor(rand() * mem.length)], mem[j]);
+      }
+    });
+    const hubs = new Set(centers.map((_, c) => nodes.reduce((b, n, i) => (n.c === c && (b < 0 || n.deg > nodes[b].deg) ? i : b), -1)));
+    const hubList = [...hubs];
+    hubList.forEach((h, i) => link(h, hubList[(i + 1) % hubList.length]));   // weak ties: hubs bridge communities
+    for (let s = 0; s < 4; s++) { const i = Math.floor(rand() * nodes.length), j = Math.floor(rand() * nodes.length); if (nodes[i].c !== nodes[j].c) link(i, j); }
+    const maxDeg = Math.max(...nodes.map(n => n.deg));
+    for (const [i, j] of edges.values()) {
+      const a = nodes[i], b = nodes[j], weak = a.c !== b.c;
+      out.push(`<line x1="${a.x.toFixed(1)}" y1="${a.y.toFixed(1)}" x2="${b.x.toFixed(1)}" y2="${b.y.toFixed(1)}" stroke="${weak ? pal.ink[2] : pal.ink[1]}" stroke-width="${(weak ? 3.5 : 5) * k}"${weak ? ` stroke-dasharray="${14 * k} ${10 * k}"` : ''} stroke-linecap="round"/>`);
+    }
+    nodes.forEach((n, i) => {
+      const hub = hubs.has(i), r = (hub ? 40 : 13 + 20 * Math.sqrt(n.deg / maxDeg)) * k;
+      const fill = hub ? pal.ink[0] : (n.c >= 0 && n.c % 2 === 0 ? pal.ink[3] : pal.bg);
+      out.push(`<circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${r.toFixed(1)}" fill="${fill}" stroke="${pal.ink[0]}" stroke-width="${4 * k}"/>`);
+      if (hub) out.push(`<circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${(r * 0.38).toFixed(1)}" fill="${pal.bg}"/>`);
+    });
   } else throw new Error(`unknown cover art "${kind}" (choose: ${ARTS.join(', ')})`);
   return out.join('\n');
 }

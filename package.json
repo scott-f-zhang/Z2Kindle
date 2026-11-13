@@ -1,0 +1,19 @@
+{
+  "name": "slides2kindle",
+  "version": "0.1.0",
+  "description": "Turn lecture slides (PDF/PPTX) into Kindle-friendly reading notes: web pages and EPUB with rendered formulas and laid-out figures.",
+  "license": "MIT",
+  "private": true,
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "web": "node build/build_web.js",
+    "epub": "node build/build_epub.js",
+    "cover": "node build/cover.js"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "js-yaml": "4.1.0",
+    "katex": "0.16.11",
+    "mathjax-full": "3.2.1"
+  }
+}

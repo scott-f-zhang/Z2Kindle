@@ -1,0 +1,104 @@
+/* slides2kindle web stylesheet — reading layout for E Ink (Kindle browser) and desktop. */
+:root {
+  --bg: #ffffff;
+  --fg: #111111;
+  --muted: #444444;
+  --rule: #111111;
+  --soft: #f2f2f2;
+  --link: #000000;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #161616; --fg: #e8e8e8; --muted: #b0b0b0; --rule: #e8e8e8; --soft: #232323; --link: #ffffff;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #161616; --fg: #e8e8e8; --muted: #b0b0b0; --rule: #e8e8e8; --soft: #232323; --link: #ffffff;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: "Songti SC", "Noto Serif SC", "Source Han Serif SC", "STSong", Georgia, serif;
+  font-size: 1.15rem;
+  line-height: 1.8;
+}
+main { max-width: 46em; margin: 0 auto; padding: 1.5em 1.25em 3em; }
+
+h1 { font-size: 1.7em; line-height: 1.35; margin: 0.6em 0 0.8em; padding-bottom: 0.35em; border-bottom: 3px solid var(--rule); }
+h2 { font-size: 1.3em; line-height: 1.4; margin: 2em 0 0.6em; padding-bottom: 0.2em; border-bottom: 1px solid var(--rule); }
+h3 { font-size: 1.1em; margin: 1.6em 0 0.4em; }
+h1, h2, h3 { font-family: "PingFang SC", "Noto Sans SC", "Source Han Sans SC", "Helvetica Neue", sans-serif; font-weight: 700; }
+p { margin: 0.7em 0; text-align: justify; }
+strong { font-weight: 700; }
+a { color: var(--link); }
+
+blockquote {
+  margin: 1.2em 0; padding: 0.8em 1em;
+  border-left: 5px solid var(--rule);
+  background: var(--soft);
+}
+blockquote p { margin: 0.3em 0; }
+
+ul, ol { padding-left: 1.6em; }
+li { margin: 0.3em 0; }
+
+.katex { font-size: 1.08em; }
+.katex-display { margin: 1em 0; padding: 0.4em 0; overflow-x: auto; overflow-y: hidden; }
+
+table { border-collapse: collapse; width: 100%; margin: 1em 0; font-size: 0.95em; display: block; overflow-x: auto; }
+th, td { border: 1px solid var(--rule); padding: 0.4em 0.6em; text-align: left; vertical-align: top; }
+th { background: var(--soft); }
+
+code { font-family: Menlo, Consolas, monospace; font-size: 0.9em; background: var(--soft); padding: 0 0.2em; }
+pre { background: var(--soft); padding: 0.8em; overflow-x: auto; white-space: pre-wrap; }
+
+.toc { border: 1px solid var(--rule); padding: 0.6em 1em; margin: 1.2em 0 2em; }
+.toc-title { font-weight: 700; margin: 0.2em 0; }
+.toc ol { margin: 0.3em 0; padding-left: 0.2em; list-style: none; }
+.toc a { text-decoration: none; }
+
+.pager { display: flex; justify-content: space-between; gap: 1em; font-family: sans-serif; font-size: 0.95em; margin: 0.5em 0 1.5em; }
+.pager:last-child { margin: 3em 0 0; padding-top: 1em; border-top: 1px solid var(--rule); }
+.pager a { text-decoration: none; border: 1px solid var(--rule); padding: 0.25em 0.8em; }
+
+.chapters > li { margin: 1.2em 0; }
+.chapters > li > a { font-weight: 700; font-family: sans-serif; }
+.chapters .ov { color: var(--muted); font-size: 0.95em; }
+
+@media (max-width: 600px) {
+  body { font-size: 1.05rem; }
+  main { padding: 1em 16px 2.5em; }
+}
+@media print {
+  .pager { display: none; }
+  h2 { break-after: avoid; }
+  .katex-display, table, blockquote { break-inside: avoid; }
+}
+
+/* ---------- figures ---------- */
+.fig { margin: 1.4em 0; }
+.fig figure { margin: 0; }
+.fig img { display: block; max-width: 100%; height: auto; margin: 0 auto; border: 1px solid var(--soft); background: #fff; }
+.fig figcaption { font-size: 0.86em; line-height: 1.55; color: var(--muted); margin-top: 0.45em; text-align: left; }
+.fig.full img { width: 100%; }
+.fig.half { width: 64%; margin-left: auto; margin-right: auto; }
+.fig.side { float: right; width: 44%; margin: 0.35em 0 0.9em 1.3em; }
+.fig.pair { display: flex; gap: 4%; align-items: flex-start; }
+.fig.pair figure { flex: 1 1 0; min-width: 0; }
+h2, h3, h4, .fig.full, .fig.half, .fig.pair, table, .toc { clear: both; }
+@media (max-width: 600px) {
+  .fig.side, .fig.half { float: none; width: 100%; margin: 1.2em 0; }
+  .fig.pair { display: block; }
+  .fig.pair figure + figure { margin-top: 1em; }
+}
+
+/* ---------- book-version callouts ---------- */
+.aside, .note { margin: 1.4em 0; padding: 0.7em 1em; clear: both; }
+.aside { border: 1px solid var(--rule); border-left-width: 5px; }
+.note { border: 1px dashed var(--rule); }
+.aside p, .note p { margin: 0.35em 0; }
+.chapters .ov { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }

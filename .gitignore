@@ -1,0 +1,12 @@
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+# generated per project
+work/
+dist/
+# demo artefacts (regenerate with `make demo`)
+examples/demo/sources/
+examples/demo/figs/
+# your own book projects: keep them outside the repo or list them here
+projects/

@@ -1,0 +1,23 @@
+# Book project config for slides2kindle. Paths are relative to this file.
+title: 演示课程 · 复习笔记
+subtitle: slides2kindle 示例
+author: ""
+language: zh-CN
+device: scribe-11           # see profiles/devices.yaml
+
+sources: sources            # folder with .pdf / .pptx lecture files
+notes: notes                # chapter markdown (one file per source, same stem)
+front: front/preface.md     # optional; shown before chapter list / as first EPUB chapter
+cover:
+  heading: 演示课程
+  subheading: 复习笔记
+  tagline: 示例 · 图文公式完整
+  footer: 为 Kindle Scribe 排版
+
+# Optional explicit chapter order (source file stems). Default: natural sort by the
+# first number in the file name.
+# chapters: [L6_Classification, L7_Logistic_regression]
+
+output:
+  web: dist/web
+  epub: dist/book.epub

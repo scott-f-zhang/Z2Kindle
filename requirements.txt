@@ -1,0 +1,4 @@
+Pillow>=9.1
+PyYAML>=6.0
+# optional: traditional-character check for zh-CN books
+opencc-python-reimplemented>=0.1.7

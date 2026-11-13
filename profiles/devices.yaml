@@ -1,0 +1,45 @@
+# Device profiles. Pixel figures are physical screen pixels.
+# px_per_em: raster density for formula images (crisp at ~1em of body text).
+# figure_max_width: cropped figures are downscaled to at most this width.
+scribe-11:        # Kindle Scribe 2025, 11", 300 ppi (resolution per spec sites, unconfirmed by Amazon)
+  name: Kindle Scribe (11")
+  screen: [1980, 2640]
+  ppi: 300
+  color: false
+  px_per_em: 72
+  figure_max_width: 1800
+scribe-10:        # Kindle Scribe 2022/2024, 10.2"
+  name: Kindle Scribe (10.2")
+  screen: [1860, 2480]
+  ppi: 300
+  color: false
+  px_per_em: 72
+  figure_max_width: 1700
+paperwhite-7:     # Kindle Paperwhite 2024 / Oasis 2-3, 7"
+  name: Kindle Paperwhite (7")
+  screen: [1264, 1680]
+  ppi: 300
+  color: false
+  px_per_em: 60
+  figure_max_width: 1200
+paperwhite-6.8:   # Kindle Paperwhite 5 (2021)
+  name: Kindle Paperwhite (6.8")
+  screen: [1236, 1648]
+  ppi: 300
+  color: false
+  px_per_em: 60
+  figure_max_width: 1200
+kindle-6:         # Kindle basic 2022/2024, Paperwhite 3/4
+  name: Kindle (6")
+  screen: [1072, 1448]
+  ppi: 300
+  color: false
+  px_per_em: 56
+  figure_max_width: 1050
+colorsoft-7:      # Kindle Colorsoft, 7" (color layer 150 ppi)
+  name: Kindle Colorsoft (7")
+  screen: [1264, 1680]
+  ppi: 300
+  color: true
+  px_per_em: 60
+  figure_max_width: 1200

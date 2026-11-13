@@ -1,6 +1,6 @@
 // Stage 5 — Kindle-friendly EPUB3. Every formula becomes a grayscale PNG sized in em (Kindle's
 // MathML/KaTeX support is unreliable), figures keep their layout classes, cover is generated.
-// Usage: node build/build_epub.js <project>
+// Usage: node build/build_epub.js <project> [--edition E]  -> <project>/output/<name>[-<edition>].epub
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -11,10 +11,11 @@ const { SVG } = require('mathjax-full/js/output/svg.js');
 const { liteAdaptor } = require('mathjax-full/js/adaptors/liteAdaptor.js');
 const { RegisterHTMLHandler } = require('mathjax-full/js/handlers/html.js');
 const { AllPackages } = require('mathjax-full/js/input/tex/AllPackages.js');
-const { TOOLKIT, PANDOC_FORMAT, loadProject, chapterFiles, pandoc, checkPandoc } = require('./lib');
+const { TOOLKIT, PANDOC_FORMAT, loadProject, parseArgs, bookMeta, chapterFiles, pandoc, checkPandoc } = require('./lib');
 const { makeCover } = require('./cover');
 
-const p = loadProject(process.argv[2] || '.');
+const args = parseArgs(process.argv.slice(2));
+const p = loadProject(args.target, args.edition);
 checkPandoc();
 const work = path.join(p.work, `epub-${p.id}`);   // per config, so editions don't clash
 const mathDir = path.join(work, 'math');
@@ -88,14 +89,26 @@ fs.writeFileSync(jsonPath, JSON.stringify(book));
 let cover = p.cfg.cover && p.cfg.cover.image ? p.path(p.cfg.cover.image) : path.join(work, 'cover.png');
 if (!(p.cfg.cover && p.cfg.cover.image)) makeCover(p, chapters, cover);
 
-const meta = (k, v) => (v ? ['--metadata', `${k}=${v}`] : []);
+// metadata -> a YAML file for pandoc (EPUB3 dc:* fields, creator roles, stable identifier)
+const bm = bookMeta(p);
+const metaDoc = {
+  title: bm.title, lang: bm.lang, 'toc-title': p.t.contents, date: bm.date,
+  identifier: [{ scheme: bm.identifier.scheme, text: bm.identifier.text }],
+};
+if (bm.subtitle) metaDoc.title = [{ type: 'main', text: bm.title }, { type: 'subtitle', text: bm.subtitle }];   // EPUB3 title-type refinement
+if (bm.authors.length) metaDoc.creator = bm.authors.map(a => ({ role: a.role, text: a.name }));
+if (bm.contributors.length) metaDoc.contributor = bm.contributors.map(a => ({ role: a.role, text: a.name }));
+for (const k of ['publisher', 'rights', 'description']) if (bm[k]) metaDoc[k] = bm[k];
+if (bm.subjects.length) metaDoc.subject = bm.subjects.map(String);
+if (bm.series) { metaDoc['belongs-to-collection'] = bm.series; if (bm.seriesIndex !== '') metaDoc['group-position'] = String(bm.seriesIndex); }
+const metaFile = path.join(work, 'metadata.yaml');
+fs.writeFileSync(metaFile, require('js-yaml').dump(metaDoc));
 pandoc([
   '-f', 'json', '-t', 'epub3', jsonPath, '-o', p.out.epub,
   '--toc', '--toc-depth=2', '--epub-chapter-level=1',
   '--css', path.join(TOOLKIT, 'build/styles/epub.css'),
   '--epub-cover-image', cover,
-  ...meta('title', p.cfg.title), ...meta('subtitle', p.cfg.subtitle), ...meta('author', p.cfg.author),
-  ...meta('lang', p.lang), ...meta('toc-title', p.t.contents),
+  '--metadata-file', metaFile,
   '--resource-path', [work, p.root].join(path.delimiter),
 ], { stdio: 'inherit' });
 

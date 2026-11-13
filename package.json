@@ -1,5 +1,5 @@
 {
-  "name": "slides2kindle",
+  "name": "z2kindle",
   "version": "0.1.0",
   "description": "Turn lecture slides (PDF/PPTX) into Kindle-friendly reading notes: web pages and EPUB with rendered formulas and laid-out figures.",
   "license": "MIT",

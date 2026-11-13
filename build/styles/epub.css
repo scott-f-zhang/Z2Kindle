@@ -33,3 +33,11 @@ div.aside, div.note { margin: 1.2em 0; padding: 0.6em 0.8em; clear: both; }
 div.aside { border: 1px solid #000; border-left: 5px solid #000; }
 div.note { border: 1px dashed #000; }
 div.aside p, div.note p { margin: 0.3em 0; }
+
+/* title page generated from book.yaml metadata */
+section.titlepage { text-align: center; margin-top: 18%; }
+section.titlepage h1.main { font-size: 1.8em; margin: 0 0 0.4em; page-break-before: avoid; }
+section.titlepage h1.subtitle { font-size: 1.15em; font-weight: normal; margin: 0 0 2.2em; color: #333; page-break-before: avoid; }
+section.titlepage p.aut { font-size: 1.1em; font-weight: bold; margin: 0.3em 0; }
+section.titlepage p.publisher, section.titlepage p.date { margin: 0.2em 0; color: #444; }
+section.titlepage div.rights { margin-top: 3em; font-size: 0.8em; color: #555; }

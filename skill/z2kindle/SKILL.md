@@ -1,13 +1,19 @@
 ---
-name: slides2kindle
-description: Turn lecture slides (PDF/PPTX) into Kindle-friendly reading notes — per-chapter web pages and an EPUB with rendered formulas and laid-out slide figures, optionally rewritten as a flowing book. Use when the user wants slides, lecture decks or course materials summarized/typeset for Kindle or e-readers, or wants to rebuild/extend a slides2kindle project.
+name: z2kindle
+description: Turn lecture slides (PDF/PPTX) into Kindle-friendly reading notes — per-chapter web pages and an EPUB with rendered formulas and laid-out slide figures, optionally rewritten as a flowing book. Use when the user wants slides, lecture decks or course materials summarized/typeset for Kindle or e-readers, or wants to rebuild/extend a Z2kindle project.
 ---
 
-# slides2kindle
+# Z2kindle
+
+Full operating manual (layout, every command, rules, pitfalls): `AGENTS.md` in the toolkit root.
+This skill adds the Claude Code specifics: fan stages out to parallel sub-agents.
 
 Toolkit root: the folder that contains this skill's `tools/`, `build/`, `prompts/` (if installed
-elsewhere, ask the user for the toolkit path; below it is `$TK`). A **project** is one book: a
-folder with `book.yaml`, `sources/`, and generated `work/`, `notes/`, `figs/`, `dist/`.
+elsewhere, ask the user for the toolkit path; below it is `$TK`). A **project** is one book, always
+laid out the same way: `book.yaml` (all editions), `sources/` (input slides), `notes/` and
+`notes_<edition>/` (chapter Markdown), `figs/`, `front/`, `work/` (regenerable intermediates,
+incl. the optional web preview `work/web/<edition>/`) and `output/` (final EPUBs only).
+Never put project files elsewhere, and never write deliverables outside `output/`.
 
 Pipeline (each stage is re-runnable):
 
@@ -18,9 +24,8 @@ Pipeline (each stage is re-runnable):
 | 2 notes | subagents | `$TK/prompts/summarize.md` |
 | 3 figures | subagents | `$TK/prompts/figures.md` (trial on 1 chapter first) |
 | 3b book edition (optional) | subagents | `$TK/prompts/book.md` (trial first) |
-| check | script | `python3 -I $TK/tools/check.py <project>` (add `--baseline … --book` for 3b) |
-| 4 web | script | `node $TK/build/build_web.js <project>` |
-| 5 epub | script | `node $TK/build/build_epub.js <project>` |
+| check | script | `python3 -I $TK/tools/check.py <project> [--edition E]` (3b: `--edition book --baseline main --book`) |
+| 4 build | script | `node $TK/build/build.js <project>` → every edition's EPUB in `output/`; web preview only with `--web` or `web: true` |
 
 ## How to run it
 
@@ -39,16 +44,24 @@ Pipeline (each stage is re-runnable):
    rest with `{EXAMPLE}` pointing at the approved chapter. Agents must not paint over images.
 5. **Check**: run `check.py`; fix every FAIL (missing images, numbering, bare `<s>`-style tags,
    traditional characters, unbalanced `:::`/`$$`) before building.
-6. **Build** web + EPUB. Preview the web output via a local server
-   (`python3 -m http.server --directory <project>/dist/web`) at a portrait viewport similar to
+6. **Build** with `build.js`. To review layout, build with `--web` and serve
+   `<project>/work/web/<edition>/` (`python3 -m http.server --directory …`) at a portrait viewport similar to
    the device; spot-check formulas, a `.pair` figure and a long table. EPUB validity: the build
    fails loudly on pandoc errors; unzip and XML-parse the XHTML if in doubt.
-7. **Book edition** (optional): create `<project>/book-edition.yaml` (copy of book.yaml with
-   `notes: notes_book`, `front: front/preface_book.md`, different `output`/`cover`), trial one
-   chapter with `prompts/book.md`, then fan out; check with
-   `check.py <project>/book-edition.yaml --baseline <project>/notes --book`; build with the
-   same scripts passing the yaml path.
-8. **Deliver**: tell the user where `dist/web/index.html` and the `.epub` are, and that EPUB
+7. **Book edition** (optional): add it under `editions:` in book.yaml (e.g. `book: {notes:
+   notes_book, front: front/preface_book.md, title: …, cover: {subheading: …}}`), trial one
+   chapter with `prompts/book.md` ({OUT_NOTES} = `<project>/notes_book`), then fan out; check
+   with `check.py <project> --edition book --baseline main --book`; `build.js` builds it too.
+8. **Metadata**: ask who the author is (never guess a name) and fill `metadata:` in book.yaml
+   (author, optional contributors with roles, date, publisher, description, subject, rights,
+   series, identifier). It is embedded in the EPUB, the author is printed on the cover.
+9. **Cover**: `cover.style` in book.yaml is `plain` (default), `figures` (collage of note
+   figures, `figures: auto|[paths]`, `count`) or `abstract` (generative art: `art:
+   flow|contours|mosaic|orbits`, `palette`, `seed`). If the user cares about the cover, run
+   `node $TK/build/cover.js <project> --gallery` and show them `work/covers/contact.png`
+   to choose; `cover.image` overrides everything.
+10. **Deliver**: tell the user the `.epub` files in `<project>/output/` (and the web preview
+   path if built), and that EPUB
    goes to the device via Send to Kindle (USB copy of EPUB does not work on Kindle).
 
 ## Rules worth keeping

@@ -1,6 +1,6 @@
 """Validate chapter notes before building.
 
-    python3 -I tools/check.py <project> [--baseline DIR] [--book]
+    python3 -I tools/check.py <project> [--edition E] [--baseline EDITION|DIR] [--book]
 
 Per chapter (notes/<stem>.md) it checks:
   * exactly one "# " title; fenced divs (:::) balanced; $$ delimiters balanced
@@ -8,7 +8,8 @@ Per chapter (notes/<stem>.md) it checks:
     every figure number is referenced in the body text
   * no raw HTML-looking tags outside code spans / math (e.g. a bare <s> would be eaten as HTML)
   * zh-CN / zh-Hans books: no traditional characters (needs `opencc-python-reimplemented`)
-  * --baseline DIR: every display formula and figure path of DIR/<stem>.md is still present
+  * --baseline EDITION|DIR: every display formula and figure path of that edition's (or DIR's)
+    <stem>.md is still present
     (use when rewriting notes, e.g. the book-style pass)
   * --book: required headings (book.yaml `book_required_headings`, default 本讲小结/关键公式/术语对照)
 Also reports figure files under figs/ that no chapter uses. Exit code 1 if any check fails.
@@ -20,7 +21,7 @@ import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from s2k_project import Project  # noqa: E402
+from z2k_project import Project  # noqa: E402
 
 norm = lambda s: re.sub(r'\s+', '', s)
 # image: ![alt](path) — alt may itself contain ']' (e.g. math like [h; c]), so only a ']' followed by '(' ends it
@@ -90,10 +91,13 @@ def check_chapter(p, stem, text, args, t2s):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument('project')
+    ap.add_argument('--edition', default='main')
     ap.add_argument('--baseline')
     ap.add_argument('--book', action='store_true')
     args = ap.parse_args()
-    p = Project(args.project)
+    p = Project(args.project, args.edition)
+    if args.baseline and args.baseline in p.editions:
+        args.baseline = Project(args.project, args.baseline).notes
     t2s = load_t2s(p.cfg.get('language', ''))
     failed, used = False, set()
     stems = p.note_stems()

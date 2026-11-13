@@ -5,6 +5,7 @@ __pycache__/
 # generated per project
 work/
 dist/
+output/
 # demo artefacts (regenerate with `make demo`)
 examples/demo/sources/
 examples/demo/figs/

@@ -20,7 +20,7 @@ import sys
 import zipfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from s2k_project import Project  # noqa: E402
+from z2k_project import Project  # noqa: E402
 
 PREVIEW_DPI = 80
 HIRES_DPI = 220

@@ -1,8 +1,9 @@
 <!--
-slides2kindle prompt template — optional Stage 3b: rewrite notes into a flowing, book-like edition.
+Z2kindle prompt template — optional Stage 3b: rewrite notes into a flowing, book-like edition.
 The orchestrator fills: {PROJECT}, {TOOLKIT}, {CHAPTERS}, {SOURCE_NOTES} (folder with the
 current notes, e.g. {PROJECT}/notes), {OUT_NOTES} (folder for the book edition, e.g.
-{PROJECT}/notes_book), {OUTLINE} (one line per chapter: number + title, in reading order),
+{PROJECT}/notes_book), {OUTLINE} (one line per chapter: number + title, in reading order), {EDITION} (edition name
+in book.yaml `editions:`, e.g. book),
 {EXAMPLE} (an approved rewritten chapter, after the trial).
 -->
 # 任务："书本版"重写
@@ -60,5 +61,5 @@ current notes, e.g. {PROJECT}/notes), {OUT_NOTES} (folder for the book edition, 
 
 ## 交付
 - 写入 `{OUT_NOTES}/<stem>.md`，不要修改 `{SOURCE_NOTES}` 下的文件。临时文件放 `{PROJECT}/work/tmp/`。
-- 自查：`python3 -I {TOOLKIT}/tools/check.py <书本版项目> --baseline {SOURCE_NOTES} --book`（书本版项目的 `notes:` 指向 `{OUT_NOTES}`，调度者会告诉你项目路径）。
+- 自查：`python3 -I {TOOLKIT}/tools/check.py {PROJECT} --edition {EDITION} --baseline main --book`（`{EDITION}` 是书本版在 `book.yaml` 的 `editions:` 里的名字，它的笔记目录就是 `{OUT_NOTES}`）。
 - 只回复：文件路径、`##` 标题列表、加了哪些"延伸"框（各一句话说明），以及图片数量是否与原文一致。

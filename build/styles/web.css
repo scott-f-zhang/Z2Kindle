@@ -1,4 +1,4 @@
-/* slides2kindle web stylesheet — reading layout for E Ink (Kindle browser) and desktop. */
+/* Z2kindle web stylesheet — reading layout for E Ink (Kindle browser) and desktop. */
 :root {
   --bg: #ffffff;
   --fg: #111111;
@@ -102,3 +102,6 @@ h2, h3, h4, .fig.full, .fig.half, .fig.pair, table, .toc { clear: both; }
 .note { border: 1px dashed var(--rule); }
 .aside p, .note p { margin: 0.35em 0; }
 .chapters .ov { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* author · publisher · date under the book title on the index page */
+.book-meta { color: #555; margin: -0.4em 0 1.4em; font-size: 0.95em; }

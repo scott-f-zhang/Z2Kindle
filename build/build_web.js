@@ -1,14 +1,16 @@
 // Stage 4 — static website: one page per chapter + index. Math is pre-rendered with KaTeX
 // (no JavaScript needed, works offline and in the Kindle browser).
-// Usage: node build/build_web.js <project>
+// Usage: node build/build_web.js <project> [--edition E]   -> <project>/work/web/<edition>/
 const fs = require('fs');
 const path = require('path');
 const katex = require('katex');
-const { TOOLKIT, PANDOC_FORMAT, loadProject, chapterFiles, pandoc, checkPandoc } = require('./lib');
+const { TOOLKIT, PANDOC_FORMAT, loadProject, parseArgs, bookMeta, chapterFiles, pandoc, checkPandoc } = require('./lib');
 
-const p = loadProject(process.argv[2] || '.');
+const args = parseArgs(process.argv.slice(2));
+const p = loadProject(args.target, args.edition);
 checkPandoc();
-const out = p.out.web;
+const out = p.out.web;                           // intermediate preview, regenerated each time
+fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(path.join(out, 'assets/fonts'), { recursive: true });
 
 // assets: KaTeX css/fonts (offline), stylesheet, figures
@@ -72,7 +74,9 @@ let front = '';
 if (p.front && fs.existsSync(p.front)) front = renderMath(md2html(p.front), 'front').replace(/<h1([^>]*)>([\s\S]*?)<\/h1>/, '<h2$1>$2</h2>');
 const title = p.cfg.title || 'Notes';
 const list = chapters.map(c => `<li><a href="${c.slug}.html">${c.h1}</a><div class="ov">${c.summary}</div></li>`).join('\n');
-fs.writeFileSync(path.join(out, 'index.html'), page(title, `<h1>${title}</h1>${front}<h2>${p.t.chapters}</h2><ol class="chapters">${list}</ol>`));
+const bm = bookMeta(p), escH = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+const metaLine = [bm.authors.map(a => a.name).join(p.lang.startsWith('zh') ? '、' : ', '), bm.publisher, bm.date].filter(Boolean).map(escH).join(' · ');
+fs.writeFileSync(path.join(out, 'index.html'), page(title, `<h1>${title}</h1>${metaLine ? `<p class="book-meta">${metaLine}</p>` : ''}${front}<h2>${p.t.chapters}</h2><ol class="chapters">${list}</ol>`));
 
 console.log(`web: ${chapters.length} chapters -> ${out}/index.html`);
 if (errors.length) { console.log(`KaTeX errors (${errors.length}):`); errors.forEach(e => console.log('  ' + e)); process.exitCode = 1; }

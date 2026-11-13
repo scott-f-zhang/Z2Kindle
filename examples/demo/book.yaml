@@ -1,7 +1,6 @@
-# Book project config for slides2kindle. Paths are relative to this file.
+# Book project config for Z2kindle. Paths are relative to this file.
 title: 演示课程 · 复习笔记
-subtitle: slides2kindle 示例
-author: ""
+subtitle: Z2kindle 示例
 language: zh-CN
 device: scribe-11           # see profiles/devices.yaml
 
@@ -18,6 +17,22 @@ cover:
 # first number in the file name.
 # chapters: [L6_Classification, L7_Logistic_regression]
 
-output:
-  web: dist/web
-  epub: dist/book.epub
+metadata:                   # embedded in the EPUB; all fields optional
+  author: 示例作者
+  date: 2026-01-15
+  publisher: Z2kindle
+  description: Z2kindle 自带的示例书，演示公式、配图和多版本构建。
+  subject: [示例, 逻辑回归]
+  rights: 示例内容，可自由使用
+
+output_name: demo-notes     # -> output/demo-notes.epub
+web: true                   # also build the web preview (work/web/main/)
+
+# A second edition of the same project (e.g. the book-style rewrite): same sources/figs,
+# its own notes folder and cover. Built to output/demo-notes-book.epub.
+editions:
+  book:
+    title: 演示课程 · 书本版
+    notes: notes_book
+    cover: {subheading: 书本版}
+    web: false

@@ -6,12 +6,13 @@ import sys
 import yaml
 
 TOOLKIT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+MAIN = 'main'
 
 
 class Project:
-    def __init__(self, target):
-        """`target` is a project folder (uses its book.yaml) or a path to any .yaml config
-        (e.g. an alternate edition); paths in the config are relative to its folder."""
+    def __init__(self, target, edition=MAIN):
+        """`target` is the project folder (or its book.yaml). `edition` picks an entry of the
+        config's `editions:` map (overrides on top of the top-level "main" edition)."""
         target = os.path.abspath(target)
         if target.endswith(('.yaml', '.yml')):
             cfg_path, self.root = target, os.path.dirname(target)
@@ -20,7 +21,17 @@ class Project:
         if not os.path.exists(cfg_path):
             sys.exit(f'config not found: {cfg_path}')
         with open(cfg_path, encoding='utf-8') as f:
-            self.cfg = yaml.safe_load(f) or {}
+            self.raw = yaml.safe_load(f) or {}
+        self.editions = [MAIN] + [e for e in (self.raw.get('editions') or {}) if e != MAIN]
+        self.edition = edition or MAIN
+        base = {k: v for k, v in self.raw.items() if k != 'editions'}
+        if self.edition != MAIN:
+            ed = (self.raw.get('editions') or {}).get(self.edition)
+            if ed is None:
+                sys.exit(f'unknown edition "{self.edition}" (have: {", ".join(self.editions)})')
+            deep = {k: {**(base.get(k) or {}), **(ed.get(k) or {})} for k in ('cover', 'metadata')}
+            base = {**base, **ed, **deep}
+        self.cfg = base
         with open(os.path.join(TOOLKIT, 'profiles', 'devices.yaml'), encoding='utf-8') as f:
             profiles = yaml.safe_load(f)
         dev = self.cfg.get('device', 'scribe-11')
@@ -37,7 +48,8 @@ class Project:
 
     @property
     def notes(self):
-        return self.path(self.cfg.get('notes', 'notes'))
+        default = 'notes' if self.edition == MAIN else f'notes_{self.edition}'
+        return self.path(self.cfg.get('notes', default))
 
     @property
     def work(self):

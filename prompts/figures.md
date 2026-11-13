@@ -1,5 +1,5 @@
 <!--
-slides2kindle prompt template — Stage 3: choose, crop and lay out figures.
+Z2kindle prompt template — Stage 3: choose, crop and lay out figures.
 The orchestrator fills: {PROJECT}, {TOOLKIT}, {CHAPTERS}. Run one agent on one chapter first
 as a trial, review it in the browser, then use it as the worked example ({EXAMPLE}) for the rest.
 -->

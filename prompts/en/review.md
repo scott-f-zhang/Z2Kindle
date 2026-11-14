@@ -9,8 +9,7 @@ The orchestrator fills: {PROJECT}, {TOOLKIT}, {CHAPTERS}, {OUT_NOTES} (book chap
 Your chapter: **{CHAPTERS}**
 
 You are an independent reviewer who did not write the chapter. Make sure `{OUT_NOTES}/<stem>.md`
-(the book edition) **misses nothing from the slides and has no calculation errors**. Students study
-for exams with this book, and the slides' examples are examined.
+(the book edition) **misses nothing from the slides and has no calculation errors**.
 
 ## Inputs
 - Slide pages: `{PROJECT}/work/img/<stem>/p-NN.png`. **View every page with Read**; page counts are

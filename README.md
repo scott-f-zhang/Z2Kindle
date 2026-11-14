@@ -2,14 +2,14 @@
 
 English | [简体中文](README.zh-CN.md)
 
-Turn lecture slides (PDF / PPTX) into Kindle-friendly revision notes: an EPUB you can read from start to finish. Formulas are fully rendered, and the important slide figures are cropped out and laid into the text. Optionally you also get a "book edition" that reads like a textbook, and a web preview.
+Turn slide decks (PDF / PPTX) into Kindle-friendly reading notes: an EPUB you can read from start to finish. Formulas are fully rendered, and the important slide figures are cropped out and laid into the text. Optionally you also get a "book edition" that reads like a textbook, and a web preview.
 
 ![Z2kindle pipeline](docs/images/pipeline.en.png)
 
 The work splits into two kinds:
 
 - **Scripts** do the deterministic steps, with the same result every time: extraction, cropping, checking, building.
-- **An agent** (Claude Code, Codex or any coding agent that can read images) does the judgement steps: writing notes, choosing figures and layouts, rewriting. Each step has a ready-made, generic prompt template in `prompts/en/` (English) and `prompts/zh/` (Chinese); requirements specific to one course or book go in that project's own `prompts/` folder and are appended automatically.
+- **An agent** (Claude Code, Codex or any coding agent that can read images) does the judgement steps: writing notes, choosing figures and layouts, rewriting. Each step has a ready-made, generic prompt template in `prompts/en/` (English) and `prompts/zh/` (Chinese); requirements specific to one book go in that project's own `prompts/` folder and are appended automatically.
 
 Agents: read [AGENTS.md](AGENTS.md) first.
 
@@ -66,11 +66,11 @@ Afterwards:
 ### 1. Create a project and add the slides
 
 ```bash
-python3 -I tools/init.py ~/books/ml-final --title "Machine Learning · Revision Notes" --device scribe-11
+python3 -I tools/init.py ~/books/ml-final --title "Machine Learning · Reading Notes" --device scribe-11
 ```
 
 ```bash
-cp ~/Downloads/lectures/*.pdf ~/books/ml-final/sources/
+cp ~/Downloads/slides/*.pdf ~/books/ml-final/sources/
 ```
 
 `init.py` creates the fixed folder layout (see [Project layout](#project-layout)) and a commented `book.yaml`. Devices: `scribe-11`, `scribe-10`, `paperwhite-7`, `paperwhite-6.8`, `kindle-6`, `colorsoft-7`.
@@ -144,8 +144,8 @@ Everything for one book lives in one folder, always laid out the same way:
 ```
 <project>/
   book.yaml            the only config: title, device, cover, metadata, editions
-  sources/             input: lecture slides (.pdf / .pptx)
-  notes/               main edition: one Markdown file per lecture (the single source of truth)
+  sources/             input: slide decks (.pdf / .pptx)
+  notes/               main edition: one Markdown file per source deck (the single source of truth)
   notes_<edition>/     other editions, e.g. notes_book/ or notes_zh/
   figs/<stem>/*.png    cropped figures, shared by all editions
   front/               preface, overview, custom cover image (optional)
@@ -166,25 +166,25 @@ Everything for one book lives in one folder, always laid out the same way:
 ## Configuration: book.yaml
 
 ```yaml
-title: Machine Learning · Revision Notes
-subtitle: Lectures 1–18
+title: Machine Learning · Reading Notes
+subtitle: Decks 1–18
 language: en                   # en (default) or zh-CN; picks prompts and interface text
 device: scribe-11              # see profiles/devices.yaml
 front: front/overview.md       # preface (optional)
 output_name: ML_Review         # -> output/ML_Review.epub (default: the folder name)
 web: false                     # true = also build the web preview
-# chapters: [R1, R2, L01, L02]  # explicit order (needed when deck numbers overlap)
+# chapters: [A1, A2, B01, B02]  # explicit order (needed when deck numbers overlap)
 # parts:                       # optional part divider pages
-#   - {title: "Part I", first: R1, intro: front/part1.md}
-#   - {title: "Part II", first: L01}
+#   - {title: "Part I", first: A1, intro: front/part1.md}
+#   - {title: "Part II", first: B01}
 
 metadata:                      # embedded in the EPUB; every field optional
   author: Jane Doe             # or a list
   date: 2026-12-01             # default: the build date
   publisher: ""
   description: One-sentence blurb
-  subject: [machine learning, revision]
-  rights: For personal study only
+  subject: [machine learning, notes]
+  rights: For personal use only
   # contributors: [{name: John Roe, role: editor}]
   # series: CS101              # collection name, with series_index
   # identifier: 978-...        # ISBN; omit for a stable generated UUID
@@ -194,7 +194,7 @@ cover:
   art: mosaic                  # abstract: flow | contours | mosaic | orbits | network | circuit
   palette: mono                # mono | ink | forest | dusk | [list of colours]
   heading: Machine Learning
-  subheading: Revision Notes
+  subheading: Reading Notes
 
 editions:                      # more editions: only what differs from the main one
   book:
@@ -204,7 +204,7 @@ editions:                      # more editions: only what differs from the main 
     cover: {subheading: Book Edition}
   zh:
     language: zh-CN            # a Chinese edition of the same book
-    title: 机器学习 · 复习笔记
+    title: 机器学习 · 阅读笔记
 ```
 
 ### Editions
@@ -213,7 +213,7 @@ Every edition under `editions:` shares `sources/` and `figs/`, and overrides onl
 
 - `make build` builds every edition; add `E=book` to build just one.
 - Check a book edition with `make check P=… E=book CHECK_ARGS="--book --baseline main"`. This also checks:
-  - that the closing sections are present: Summary, Key Formulas and Key Terms for English books; 本讲小结, 关键公式 and 术语对照 for Chinese books;
+  - that the closing sections are present: Summary, Key Formulas and Key Terms for English books; 小结, 关键公式 and 术语对照 (substring match) for Chinese books;
   - that no formula or figure from the main edition was lost.
 
 ### Book metadata
@@ -257,7 +257,7 @@ The Kindle reflows the text itself (font, size and line spacing come from the re
 
 ## Note format
 
-One Markdown file per lecture, e.g. `notes/L3_Generalization.md`:
+One Markdown file per source deck, e.g. `notes/L3_Generalization.md`:
 
 ````markdown
 # L3 · Model Generalization
@@ -316,7 +316,7 @@ docs/images/         README images in both languages (regenerate with src/make_i
 
 ## Caveats
 
-- **Cost**: writing notes, adding figures and the book edition each read every slide image. As a rough guide, each step uses about 150–200k agent tokens per 15–20 slide pages. In one real run, 18 lectures (about 320 pages) took about three million tokens for all three steps. Estimate time and cost before processing a large batch.
+- **Cost**: writing notes, adding figures and the book edition each read every slide image. As a rough guide, each step uses about 150–200k agent tokens per 15–20 slide pages. In one real run, 18 decks (about 320 pages) took about three million tokens for all three steps. Estimate time and cost before processing a large batch.
 - **Copyright**: the slides, and the notes generated from them, belong to their author. Do not commit them to a public repository. The toolkit itself is what you can share.
 - **Human review**: the agent can make mistakes. `check.py` only checks structure; whether the content is correct needs a human. Check the final EPUB on a real device.
 - **PPTX limits**: diagrams drawn with PowerPoint shapes (rather than image files) cannot be cropped.

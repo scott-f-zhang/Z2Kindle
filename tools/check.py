@@ -12,7 +12,7 @@ Per chapter (notes/<stem>.md) it checks:
     <stem>.md is still present
     (use when rewriting notes, e.g. the book-style pass)
   * --book: required headings (book.yaml `book_required_headings`; default Summary / Key Formulas /
-    Key Terms, or 本讲小结 / 关键公式 / 术语对照 for Chinese books)
+    Key Terms, or 小结 / 关键公式 / 术语对照 for Chinese books; matched as substrings, so 本章小结 passes)
 Also reports figure files under figs/ that no chapter uses. Exit code 1 if any check fails.
 """
 import argparse
@@ -87,7 +87,7 @@ def check_chapter(p, stem, text, args, t2s):
                 issues.append('figure set differs from baseline')
     if args.book:
         zh = str(p.cfg.get('language', 'en')).lower().startswith('zh')
-        default = ['本讲小结', '关键公式', '术语对照'] if zh else ['Summary', 'Key Formulas', 'Key Terms']
+        default = ['小结', '关键公式', '术语对照'] if zh else ['Summary', 'Key Formulas', 'Key Terms']
         for h in p.cfg.get('book_required_headings', default):
             if not re.search(r'^#{2,4} .*' + re.escape(h), text, re.M):
                 issues.append(f'missing heading containing "{h}"')

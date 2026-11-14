@@ -1,6 +1,6 @@
 ---
 name: z2kindle
-description: Turn lecture slides (PDF/PPTX) into Kindle-friendly reading notes — per-chapter web pages and an EPUB with rendered formulas and laid-out slide figures, optionally rewritten as a flowing book. Use when the user wants slides, lecture decks or course materials summarized/typeset for Kindle or e-readers, or wants to rebuild/extend a Z2kindle project.
+description: Turn slide decks (PDF/PPTX) into Kindle-friendly reading notes — per-chapter web pages and an EPUB with rendered formulas and laid-out slide figures, optionally rewritten as a flowing book. Use when the user wants slides or slide decks summarized/typeset for Kindle or e-readers, or wants to rebuild/extend a Z2kindle project.
 ---
 
 # Z2kindle
@@ -68,7 +68,7 @@ Pipeline (each stage is re-runnable):
    goes to the device via Send to Kindle (USB copy of EPUB does not work on Kindle).
 
 ## Rules worth keeping
-- Two prompt layers: toolkit templates in `$TK/prompts/` stay generic; course/book-specific
+- Two prompt layers: toolkit templates in `$TK/prompts/` stay generic; book-specific
   requirements go in `<project>/prompts/common.md` and `<project>/prompts/<stage>.md`, which
   `tools/prompt.py` appends after the template (they take precedence). Never put them in `work/tmp/`.
 - Notes Markdown is the single source; never hand-edit generated HTML/EPUB.
@@ -77,7 +77,7 @@ Pipeline (each stage is re-runnable):
 - Figures: `::: {.fig .full|.half|.side|.pair}` wrapping image paragraphs; captions are the alt
   text. Keep source attributions; crop, don't edit.
 - Report honestly: what was checked in the browser vs. not checked on a real device.
-- Course slides belong to their authors: don't publish generated notes or slides without
+- Source slides belong to their authors: don't publish generated notes or slides without
   permission; the toolkit itself is shareable.
 - Cost: stages 2/3/3b read every slide image; expect on the order of 150–200k subagent tokens
   per 15–20 slide pages per stage. Tell the user before fanning out on a large deck.

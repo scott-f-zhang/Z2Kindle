@@ -23,7 +23,7 @@ subtitle: ""
 language: {language}
 device: {device}            # see {toolkit}/profiles/devices.yaml
 
-sources: sources            # .pdf / .pptx lecture files
+sources: sources            # .pdf / .pptx slide decks
 notes: notes                # chapter markdown (one file per source, same stem)
 front: front/preface.md     # optional front matter
 cover:
@@ -49,12 +49,12 @@ metadata:
   # publisher: ""
   # description: ""         # blurb shown in book details
   # subject: [keyword1, keyword2]
-  # rights: ""              # e.g. "For personal study only"
+  # rights: ""              # e.g. "For personal use only"
   # series: ""              # collection name; series_index: 1
   # identifier: ""          # ISBN, or leave unset for a stable generated UUID (re-sent books replace the old copy)
 
 # chapters: [stem1, stem2]  # optional explicit order (default: natural sort by first number)
-# parts:                    # optional part divider pages, e.g. two course sections in one book
+# parts:                    # optional part divider pages, e.g. two sets of decks in one book
 #   - {title: "Part I", first: stem1, intro: front/part1.md}
 #   - {title: "Part II", first: stem5}
 

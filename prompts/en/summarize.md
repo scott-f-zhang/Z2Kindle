@@ -4,7 +4,7 @@ The orchestrator fills: {PROJECT} (absolute project path), {TOOLKIT} (absolute t
 {CHAPTERS} (comma-separated source stems assigned to this agent).
 Chinese version: prompts/zh/summarize.md. Edit "Writing rules" to change the style.
 -->
-# Task: write "reading version" notes from lecture slides
+# Task: write "reading version" notes from slides
 
 Your chapters (source file names without extension): **{CHAPTERS}**
 
@@ -53,7 +53,7 @@ One Markdown file per chapter: `{PROJECT}/notes/<stem>.md`, structured like this
   blocks.
 - Angle-bracket tokens such as `<s>` in running text must be wrapped in backticks, otherwise they
   are parsed as HTML tags.
-- Skip title pages, instructor contact pages and bare "Questions?" pages. Do not cite page numbers.
+- Skip title pages, speaker contact pages and bare "Questions?" pages. Do not cite page numbers.
 - Use Markdown tables where the slides contain tables.
 
 ## When done

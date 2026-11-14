@@ -2,7 +2,7 @@
 
 [English](README.md) | 简体中文
 
-把课件（PDF / PPTX）变成适合 Kindle 阅读的复习笔记：一本可以从头读到尾的 EPUB 电子书。公式完整渲染，课件里的重点图会被裁出来，按版式排进正文。还可以再出一个读起来像教材的"书本版"，以及一份网页预览。
+把幻灯片（PDF / PPTX）变成适合 Kindle 阅读的阅读笔记：一本可以从头读到尾的 EPUB 电子书。公式完整渲染，幻灯片里的重点图会被裁出来，按版式排进正文。还可以再出一个读起来像教材的"书本版"，以及一份网页预览。
 
 ![Z2kindle 流程](docs/images/pipeline.zh.png)
 
@@ -15,11 +15,11 @@
 
 ## 效果
 
-课件里大部分要点和公式都在图片里。Agent 会逐页看图，把内容改写成连贯的中文讲解，公式转写成 LaTeX，挑出真正有用的图并安排版式：
+幻灯片里大部分要点和公式都在图片里。Agent 会逐页看图，把内容改写成连贯的中文讲解，公式转写成 LaTeX，挑出真正有用的图并安排版式：
 
-![左：两页课件；右：生成的阅读笔记](docs/images/slides-to-notes.zh.png)
+![左：两页幻灯片；右：生成的阅读笔记](docs/images/slides-to-notes.zh.png)
 
-上图用的是工具自带的示例课件。右边是网页预览，EPUB 的内容与它完全一样。
+上图用的是工具自带的示例幻灯片。右边是网页预览，EPUB 的内容与它完全一样。
 
 ## 语言
 
@@ -47,7 +47,7 @@ make deps                          # npm install + pip install -r requirements.t
 ```
 
 ```bash
-make demo                          # 用自带的两页示例课件跑一遍完整流程
+make demo                          # 用自带的两页示例幻灯片跑一遍完整流程
 ```
 
 跑完以后：
@@ -57,14 +57,14 @@ make demo                          # 用自带的两页示例课件跑一遍完�
 
 ## 做一本新书
 
-### 1. 新建项目，放入课件
+### 1. 新建项目，放入幻灯片
 
 ```bash
-python3 -I tools/init.py ~/books/ml-final --title "机器学习 · 复习笔记" --device scribe-11 --language zh-CN
+python3 -I tools/init.py ~/books/ml-final --title "机器学习 · 阅读笔记" --device scribe-11 --language zh-CN
 ```
 
 ```bash
-cp ~/Downloads/lectures/*.pdf ~/books/ml-final/sources/
+cp ~/Downloads/slides/*.pdf ~/books/ml-final/sources/
 ```
 
 `init.py` 会建好固定的目录结构（见[项目结构](#项目结构)），并生成一份带注释的 `book.yaml`。设备可选 `scribe-11`、`scribe-10`、`paperwhite-7`、`paperwhite-6.8`、`kindle-6`、`colorsoft-7`。
@@ -125,7 +125,7 @@ make build P=~/books/ml-final
 ```
 <project>/
   book.yaml            唯一的配置：书名、设备、封面、元数据，以及各个版本
-  sources/             输入：课件 .pdf / .pptx
+  sources/             输入：幻灯片 .pdf / .pptx
   notes/               主版本的章节 Markdown，每章一个文件（唯一源文件）
   notes_<版本>/        其他版本的章节，例如 notes_book/
   figs/<stem>/*.png    裁好的图，各版本共用
@@ -147,27 +147,27 @@ make build P=~/books/ml-final
 ## 配置：book.yaml
 
 ```yaml
-title: 机器学习 · 复习笔记
-subtitle: L1–L18 课件阅读版
+title: 机器学习 · 阅读笔记
+subtitle: L1–L18 幻灯片阅读版
 language: zh-CN                # 默认 en；决定提示词模板和界面文字
 device: scribe-11              # 见 profiles/devices.yaml
 front: front/overview.md       # 前言（可选）
 output_name: ML_Review         # -> output/ML_Review.epub（默认用文件夹名）
 web: false                     # true = 同时生成网页预览
-# chapters: [R1, R2, L01, L02]  # 明确章节顺序（课件编号重叠时必须写）
+# chapters: [A1, A2, B01, B02]  # 明确章节顺序（幻灯片编号重叠时必须写）
 # parts:                       # 可选：分部页
-#   - {title: "第一部分", first: R1, intro: front/part1.md}
-#   - {title: "第二部分", first: L01}
+#   - {title: "第一部分", first: A1, intro: front/part1.md}
+#   - {title: "第二部分", first: B01}
 
 metadata:                      # 写进 EPUB 的书籍信息，全部可选
   author: 张三                 # 也可以是列表
   date: 2026-12-01             # 不写就用构建当天的日期
   publisher: ""
   description: 一句话简介
-  subject: [机器学习, 复习]
+  subject: [机器学习, 笔记]
   rights: 仅供个人学习使用
   # contributors: [{name: 李四, role: editor}]
-  # series: CSE475             # 丛书名，配合 series_index
+  # series: CS101              # 丛书名，配合 series_index
   # identifier: 978-...        # ISBN；不写就生成固定的 UUID
 
 cover:
@@ -175,7 +175,7 @@ cover:
   art: mosaic                  # abstract：flow | contours | mosaic | orbits | network | circuit
   palette: mono                # mono | ink | forest | dusk | [色值列表]
   heading: 机器学习
-  subheading: 复习笔记
+  subheading: 阅读笔记
 
 editions:                      # 其他版本：只写和主版本不同的设置
   book:
@@ -190,7 +190,7 @@ editions:                      # 其他版本：只写和主版本不同的设�
 `editions:` 下的每个版本共用 `sources/` 和 `figs/`，只覆盖自己写出的设置（`cover` 和 `metadata` 按字段合并）。
 
 - `make build` 会构建全部版本；只构建一个版本时加 `E=book`。
-- 校验书本版：`make check P=… E=book CHECK_ARGS="--book --baseline main"`。这会额外检查章末小节是否齐全（中文书是本讲小结、关键公式、术语对照；英文书是 Summary、Key Formulas、Key Terms），以及主版本里的公式和图有没有丢。
+- 校验书本版：`make check P=… E=book CHECK_ARGS="--book --baseline main"`。这会额外检查章末小节是否齐全（中文书是小结、关键公式、术语对照；英文书是 Summary、Key Formulas、Key Terms），以及主版本里的公式和图有没有丢。
 - 版本可以有自己的 `language`，用来做中英两个版本。
 
 ### 书籍元数据
@@ -208,7 +208,7 @@ editions:                      # 其他版本：只写和主版本不同的设�
 | 样式 | 效果 |
 |---|---|
 | `plain`（默认） | 白底黑字标题页，附章节目录；章节多时自动分两栏 |
-| `figures` | 标题加一组课件配图拼贴。`figures: auto` 会从各章自动挑图，也可以写成图片路径列表；`count: 1–9` 控制张数 |
+| `figures` | 标题加一组幻灯片配图拼贴。`figures: auto` 会从各章自动挑图，也可以写成图片路径列表；`count: 1–9` 控制张数 |
 | `abstract` | 生成式抽象图案，上面压一张标题卡片。图案用 `art` 选，配色用 `palette` 选，换一个 `seed` 数字就换一种变化 |
 
 先把所有样式都渲染出来比较一下，再决定用哪个：
@@ -258,7 +258,7 @@ $$
 
 - **公式**：只用 KaTeX 支持的命令。网页预览用 KaTeX 预先渲染，不需要 JavaScript。EPUB 里每个公式会转成按 em 定尺寸的图片，因为 Kindle 对 MathML 的支持不可靠。
 - **图**：用 fenced div 包住只含图片的段落，图片的 alt 文字就是图注。图号按章编号，并且要在正文里引用。
-- **提示框**（书本版常用）：`::: {.aside}` 是"延伸"框，放超出课件范围的补充；`::: {.note}` 是"注意"框，放课件里的笔误或存疑之处。
+- **提示框**（书本版常用）：`::: {.aside}` 是"延伸"框，放超出幻灯片范围的补充；`::: {.note}` 是"注意"框，放幻灯片里的笔误或存疑之处。
 - **尖括号记号**（比如 `<s>`）要放进反引号，否则会被当成 HTML 标签。
 
 ## 命令速查
@@ -287,14 +287,14 @@ build/               Node：build（总入口）、build_epub、build_web、cove
 prompts/en, zh/      需要判断的步骤所用的提示词模板：summarize、figures、book、draft、review
 profiles/            设备参数 devices.yaml
 skill/z2kindle/      Claude Code skill
-examples/demo/       示例项目：英文主版本 + 中文版本（课件由脚本现场生成，不含任何真实课程内容）
+examples/demo/       示例项目：英文主版本 + 中文版本（幻灯片由脚本现场生成，不含任何真实资料）
 docs/images/         README 用图，中英各一套（src/make_images.py 可重新生成）
 ```
 
 ## 注意事项
 
-- **成本**：写笔记、配图、书本版这三步都要逐页看图。粗略估计，每 15–20 页课件每一步约用 15–20 万 Agent token；一次实际使用中，18 讲约 320 页课件三步合计用了约三百万 token。处理大批课件前，先估一下时间和费用。
-- **版权**：课件和由它生成的笔记属于原作者，不要提交到公开仓库。可以分享的是工具本身。
+- **成本**：写笔记、配图、书本版这三步都要逐页看图。粗略估计，每 15–20 页幻灯片每一步约用 15–20 万 Agent token；一次实际使用中，18 份约 320 页的幻灯片三步合计用了约三百万 token。处理大批幻灯片前，先估一下时间和费用。
+- **版权**：幻灯片和由它生成的笔记属于原作者，不要提交到公开仓库。可以分享的是工具本身。
 - **人工复核**：Agent 写出来的内容可能有误。`check.py` 只检查结构问题，内容是否准确需要人来看。EPUB 最终的效果要在真机上确认。
 - **PPTX 的限制**：PPT 里用形状拼出来的图（不是图片文件）没法裁剪。
 

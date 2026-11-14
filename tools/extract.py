@@ -1,4 +1,4 @@
-"""Stage 1 — extract text and page images from lecture sources.
+"""Stage 1 — extract text and page images from slide sources.
 
     python3 -I tools/extract.py <project>
 

@@ -7,7 +7,7 @@ operating manual: read it before using the toolkit. Humans: see [README.md](READ
 
 ## What this toolkit does
 
-Z2kindle turns lecture slides (PDF / PPTX) into Kindle reading notes. It produces an EPUB with
+Z2kindle turns slide decks (PDF / PPTX) into Kindle reading notes. It produces an EPUB with
 rendered formulas and laid-out slide figures, plus optionally a "book" edition and a web preview.
 
 | Kind of step | Who does it | Examples |
@@ -27,7 +27,7 @@ project. Run every command from `$TK`, using `python3 -I` for the Python tools.
 $P/
   book.yaml            the only config: title, device, cover, metadata, editions
   sources/             INPUT slides (.pdf/.pptx). Read-only for you.
-  notes/               main edition chapters, one Markdown file per lecture   <- you write
+  notes/               main edition chapters, one Markdown file per source deck <- you write
   notes_<edition>/     other editions, e.g. notes_book/                       <- you write
   figs/<stem>/*.png    cropped figures, shared by all editions                <- figtool writes
   front/               preface / overview / custom cover image (optional)     <- you may write
@@ -83,7 +83,7 @@ python3 -I tools/extract.py "$P"
 
 Read `$P/work/manifest.json` for page counts and preview sizes. Chapter order follows the first
 number in each file name (natural sort), or an explicit `chapters:` list in `book.yaml`. Use an
-explicit list when two sets of decks share numbers (e.g. `R1…R4` and `L01…L14`). To group chapters
+explicit list when two sets of decks share numbers (e.g. `A1…A4` and `B01…B14`). To group chapters
 into parts with divider pages, add `parts: [{title, first: <stem>, intro: <optional .md>}]`.
 
 ### 2. Reading notes (judgement)
@@ -154,7 +154,7 @@ are skipped. Three judgement stages replace stages 2, 3 and 3b; use sub-agents i
 
 1. **Draft** (`prompts/<lang>/draft.md`): slides → a complete draft with figures in
    `work/draft/<stem>.md`. It keeps every example in full, with the figure each example uses.
-   Course-specific wishes (e.g. merge repetitive slides, stricter figure choice) go in
+   Project-specific wishes (e.g. merge repetitive slides, stricter figure choice) go in
    `$P/prompts/draft.md`. Split a large deck into parts of about 40 pages:
    `tools/prompt.py "$P" draft --chapters Ch3 --pages 1-29 --part 1` (then `--pages 30-58 --part 2`).
    Merge the parts into `work/draft/<stem>.md` yourself (renumber sections and figures).
@@ -188,7 +188,7 @@ and run the check again. Exit code 0 means everything passed. The check covers:
 - no traditional Chinese characters (needs `opencc-python-reimplemented`; skipped with a note if it is missing);
 - with `--baseline`: no display formula or figure lost compared with the baseline edition;
 - with `--book`: the required closing sections are present (Summary / Key Formulas / Key Terms for
-  English books; 本讲小结 / 关键公式 / 术语对照 for Chinese books; override with
+  English books; 小结 / 关键公式 / 术语对照 for Chinese books (substring match, e.g. 本章小结); override with
   `book_required_headings:`).
 
 ### 5. Build
@@ -224,10 +224,10 @@ lists each failing formula. Fix those formulas in the notes and rebuild.
 ## Two layers of prompts: toolkit vs. project
 
 - **Toolkit templates** (`$TK/prompts/<lang>/<stage>.md`) are generic: they hold only rules that
-  apply to any course. Change them only to improve the method for every book.
+  apply to any slide deck. Change them only to improve the method for every book.
 - **Project rules** (`$P/prompts/common.md` for every stage, `$P/prompts/<stage>.md` for one stage)
-  hold everything specific to this course or book: course context, chapter titles, how verbose the
-  slides are, figure policy, which chapter owns a topic repeated across lectures, length targets.
+  hold everything specific to this book: subject context, chapter titles, how verbose the slides
+  are, figure policy, which chapter owns a topic repeated across decks, length targets.
   `tools/prompt.py` appends them after the template under "Project-specific rules", fills the same
   placeholders in them, and they take precedence over the template.
 - When the user gives a requirement for one book, write it into `$P/prompts/`, not into the toolkit.

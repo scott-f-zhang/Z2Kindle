@@ -27,6 +27,7 @@ from z2k_project import Project  # noqa: E402
 norm = lambda s: re.sub(r'\s+', '', s)
 # image: ![alt](path) — alt may itself contain ']' (e.g. math like [h; c]), so only a ']' followed by '(' ends it
 IMG = re.compile(r'!\[((?:[^\]]|\](?!\())*)\]\(([^)\s]+)\)')
+FENCED_CODE = re.compile(r'^(`{3,}|~{3,})[^\n]*\n[\s\S]*?^\1[ \t]*$', re.M)   # ``` code blocks
 CODE_MATH = re.compile(r'\$\$[\s\S]*?\$\$|\$[^$\n]+\$|`[^`\n]*`')
 
 
@@ -44,6 +45,7 @@ def load_t2s(lang):
 
 def check_chapter(p, stem, text, args, t2s):
     issues = []
+    text = FENCED_CODE.sub("", text)    # code blocks may hold "# comment" lines and <stdio.h>
     if len(re.findall(r'^# ', text, re.M)) != 1:
         issues.append('needs exactly one "# " title')
     # [ \t]* rather than \s*: \s also matches newlines, which made ":::\n<word>" look like an opening fence

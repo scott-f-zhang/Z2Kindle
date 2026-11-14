@@ -59,7 +59,11 @@ in book.yaml `editions:`, e.g. book),
 - 有了图以后，大段图片外观描述可以压缩，但图中的关键数字和标签仍要在正文里交代。
 - 正文里的 `<s>` 这类尖括号记号放进反引号。
 
+**6. 例子（考试常考，一个都不能少）**
+- 原文里每个例子、计算过程、算法或指令的逐步演示都要**完整保留**：题目条件原样给出，每一步都写出来，数字不能改，写明最终结果，例子用到的图放在例子旁边。
+- 写成教材里"例题"的样子：用 `#### 例 N.k　标题` 小标题，全章连续编号；正文按 **条件**、**求**、**解**、**结论** 的顺序写。不能把例子压缩成一句话或只留结论。
+
 ## 交付
 - 写入 `{OUT_NOTES}/<stem>.md`，不要修改 `{SOURCE_NOTES}` 下的文件。临时文件放 `{PROJECT}/work/tmp/`。
-- 自查：`python3 -I {TOOLKIT}/tools/check.py {PROJECT} --edition {EDITION} --baseline main --book`（`{EDITION}` 是书本版在 `book.yaml` 的 `editions:` 里的名字，它的笔记目录就是 `{OUT_NOTES}`）。
+- 自查：`python3 -I {TOOLKIT}/tools/check.py {PROJECT} --edition {EDITION} --baseline {SOURCE_NOTES} --book`（`{EDITION}` 是书本版在 `book.yaml` 的 `editions:` 里的名字，它的笔记目录就是 `{OUT_NOTES}`）。
 - 只回复：文件路径、`##` 标题列表、加了哪些"延伸"框（各一句话说明），以及图片数量是否与原文一致。

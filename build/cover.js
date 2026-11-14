@@ -1,7 +1,7 @@
 // Cover generator, sized to the device screen. Three styles (book.yaml `cover.style`):
 //   plain     black-on-white title page with the chapter list (default)
 //   figures   title + a collage of figures from the notes (auto-picked or listed)
-//   abstract  title card over generative art: flow | contours | mosaic | orbits | network
+//   abstract  title card over generative art: flow | contours | mosaic | orbits | network | circuit
 // Used by build_epub.js; can also run alone:
 //   node build/cover.js <project> [--edition E] [--style S] [--art A] [--seed N]
 //        [--palette P] [--count N] [--out file.png]
@@ -11,7 +11,7 @@ const path = require('path');
 const { Resvg } = require('@resvg/resvg-js');
 
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-const ARTS = ['flow', 'contours', 'mosaic', 'orbits', 'network'];
+const ARTS = ['flow', 'contours', 'mosaic', 'orbits', 'network', 'circuit'];
 const PALETTES = {
   mono:   { bg: '#f4f4f1', ink: ['#111111', '#3a3a3a', '#6b6b6b', '#9d9d9d', '#cfcfcf'] },
   ink:    { bg: '#f3efe6', ink: ['#1d3557', '#457b9d', '#a8dadc', '#e63946', '#2a2a2a'] },
@@ -236,6 +236,52 @@ function art(kind, X) {
       const fill = hub ? pal.ink[0] : (n.c >= 0 && n.c % 2 === 0 ? pal.ink[3] : pal.bg);
       out.push(`<circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${r.toFixed(1)}" fill="${fill}" stroke="${pal.ink[0]}" stroke-width="${4 * k}"/>`);
       if (hub) out.push(`<circle cx="${n.x.toFixed(1)}" cy="${n.y.toFixed(1)}" r="${(r * 0.38).toFixed(1)}" fill="${pal.bg}"/>`);
+    });
+  } else if (kind === 'circuit') {
+    // a circuit board: chips with pins, traces routed on a grid with 45-degree bends, via pads
+    const g = 44 * k, nx = Math.floor(W / g), ny = Math.floor(H / g);
+    const used = Array.from({ length: ny + 1 }, () => new Uint8Array(nx + 1));
+    const free = (i, j) => i > 0 && j > 0 && i < nx && j < ny && !used[j][i];
+    const DIRS = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
+    const chips = [], pins = [];
+    for (let tries = 0; chips.length < 3 && tries < 400; tries++) {   // chips sit below the title card
+      const w = 5 + Math.floor(rand() * 5), h = 4 + Math.floor(rand() * 4);
+      const i0 = 3 + Math.floor(rand() * (nx - w - 6)), j0 = Math.floor(ny * 0.48) + Math.floor(rand() * (ny * 0.42 - h));
+      if (chips.some(c => i0 < c.i0 + c.w + 4 && c.i0 < i0 + w + 4 && j0 < c.j0 + c.h + 4 && c.j0 < j0 + h + 4)) continue;
+      chips.push({ i0, j0, w, h });
+      for (let j = j0 - 1; j <= j0 + h + 1; j++) for (let i = i0 - 1; i <= i0 + w + 1; i++) if (used[j]) used[j][i] = 1;
+      for (let i = i0 + 1; i < i0 + w; i++) { pins.push([i, j0 - 1, 6]); pins.push([i, j0 + h + 1, 2]); }
+      for (let j = j0 + 1; j < j0 + h; j++) { pins.push([i0 - 1, j, 4]); pins.push([i0 + w + 1, j, 0]); }
+    }
+    const traces = [];
+    const route = (i, j, d, maxLen) => {
+      const pts = [[i, j]];
+      for (let s = 0; s < maxLen; s++) {
+        if (s > 2 && rand() < 0.16) d = (d + (rand() < 0.5 ? 1 : 7)) % 8;    // bend by 45 degrees
+        const [di, dj] = DIRS[d], ni = i + di, nj = j + dj;
+        if (!free(ni, nj) || (di && dj && (used[j][ni] && used[nj][i]))) break;  // no crossing on diagonals
+        i = ni; j = nj; used[j][i] = 1; pts.push([i, j]);
+      }
+      if (pts.length > 2) traces.push(pts);
+    };
+    pins.forEach(([i, j, d]) => { if (rand() < 0.8) route(i, j, d, 8 + Math.floor(rand() * 40)); });
+    for (let s = 0; s < 70; s++) {                                     // free-running traces fill the board
+      const i = 1 + Math.floor(rand() * (nx - 1)), j = 1 + Math.floor(rand() * (ny - 1));
+      if (free(i, j)) { used[j][i] = 1; route(i, j, Math.floor(rand() * 8), 6 + Math.floor(rand() * 30)); }
+    }
+    traces.forEach((pts, t) => {
+      const wide = t % 5 === 0, sw = (wide ? 9 : 5) * k;
+      out.push(`<path d="M${pts.map(([i, j]) => `${i * g} ${j * g}`).join('L')}" fill="none" stroke="${pal.ink[wide ? 0 : 1]}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/>`);
+      const [ei, ej] = pts[pts.length - 1];
+      out.push(`<circle cx="${ei * g}" cy="${ej * g}" r="${13 * k}" fill="${pal.bg}" stroke="${pal.ink[0]}" stroke-width="${6 * k}"/>`);
+    });
+    chips.forEach(({ i0, j0, w, h }) => {
+      for (const [i, j] of pins.filter(([i, j]) => i >= i0 - 1 && i <= i0 + w + 1 && j >= j0 - 1 && j <= j0 + h + 1)) {
+        const x = i * g, y = j * g;
+        out.push(`<rect x="${x - 9 * k}" y="${y - 9 * k}" width="${18 * k}" height="${18 * k}" fill="${pal.ink[2]}"/>`);
+      }
+      out.push(`<rect x="${i0 * g}" y="${j0 * g}" width="${w * g}" height="${h * g}" rx="${8 * k}" fill="${pal.ink[0]}"/>`);
+      out.push(`<circle cx="${(i0 + 0.7) * g}" cy="${(j0 + 0.7) * g}" r="${10 * k}" fill="${pal.bg}"/>`);
     });
   } else throw new Error(`unknown cover art "${kind}" (choose: ${ARTS.join(', ')})`);
   return out.join('\n');

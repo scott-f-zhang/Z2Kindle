@@ -3,7 +3,7 @@
     python3 -I tools/init.py <project_dir> [--title T] [--device scribe-11] [--language en|zh-CN]
 
 Creates the standard layout and a book.yaml you can edit:
-  <project>/book.yaml  sources/  notes/  figs/  front/  work/  output/
+  <project>/book.yaml  sources/  notes/  figs/  front/  prompts/  work/  output/
 Then copy your .pdf/.pptx files into sources/ and run tools/extract.py.
 """
 import argparse
@@ -30,7 +30,7 @@ cover:
   style: plain              # plain | figures | abstract   (preview all: make covers P=<project>)
   # figures: auto           # figures style: auto-pick from the notes, or a list of image paths
   # count: 6                # figures style: how many tiles (1-9)
-  # art: mosaic             # abstract style: flow | contours | mosaic | orbits | network
+  # art: mosaic             # abstract style: flow | contours | mosaic | orbits | network | circuit
   # palette: mono           # abstract style: mono | ink | forest | dusk | [list of hex colours]
   # seed: 1                 # abstract style: change to get a different variation
   heading: {title}
@@ -83,7 +83,7 @@ def main():
     cfg = os.path.join(a.project, 'book.yaml')
     if os.path.exists(cfg):
         sys.exit(f'{cfg} already exists; not overwriting')
-    for d in ('sources', 'notes', 'figs', 'front', 'work', 'output'):
+    for d in ('sources', 'notes', 'figs', 'front', 'prompts', 'work', 'output'):
         os.makedirs(os.path.join(a.project, d), exist_ok=True)
     with open(cfg, 'w', encoding='utf-8') as f:
         f.write(TEMPLATE.format(title=json.dumps(a.title, ensure_ascii=False), device=a.device, language=a.language, toolkit=TOOLKIT))

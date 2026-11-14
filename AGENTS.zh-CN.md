@@ -27,6 +27,7 @@ $P/
   notes_<版本>/        其他版本，例如 notes_book/                        <- 你来写
   figs/<stem>/*.png    裁好的图，各版本共用                             <- figtool 生成
   front/               前言、Overview、自定义封面图（可选）              <- 你可以写
+  prompts/             本项目专用的提示词规定（可选）：common.md、<阶段>.md  <- 你可以写
   work/                可以重新生成的中间结果（随时可删）：
                          text/<stem>.txt   img/<stem>/p-NN.png（80 dpi）   hires/<stem>/p-NN.png（220 dpi）
                          pptx/<stem>/      grid/   manifest.json   epub-<版本>/   covers/   web/<版本>/
@@ -118,6 +119,15 @@ python3 -I tools/figtool.py "$P" crop <stem> <页码> x0 y0 x1 y1 <名字>
 3. 先试做一章，再处理其余章节。
 4. 全部完成后，根据写好的章节自己写 `front/preface_book.md`。
 
+### 只做书本版（不要阅读版）
+
+用户只要书本版时，书本版就是主版本（写在 `notes/`），跳过阅读版。用下面三个判断阶段代替第 2、3、3b 步，能用子 agent 就用：
+
+1. **起草**（`prompts/<语言>/draft.md`）：课件 → `work/draft/<stem>.md`，内容完整、带配图。例子一个不少，例子用到的图放在旁边。这门课特有的要求（例如合并啰嗦重复的页、配图从严）写进 `$P/prompts/draft.md`。大的课件按约 40 页分段：`tools/prompt.py "$P" draft --chapters Ch3 --pages 1-29 --part 1`（再 `--pages 30-58 --part 2`），然后由你把各段合并成 `work/draft/<stem>.md`（统一小节和图的编号）。
+2. **书本版**（`prompts/<语言>/book.md`）：`tools/prompt.py "$P" book --chapters … --edition main --source work/draft [--example …]`。先试做一章，通过后作为其余章节的 `--example`。
+3. **审校**（`prompts/<语言>/review.md`）：由没写这一章的 agent 逐页对照课件核对，重算每个例子：`tools/prompt.py "$P" review --chapters … --edition main --source work/draft`。
+4. 用 `tools/check.py "$P" --baseline "$P/work/draft" --book` 校验，写 `front/preface.md`，然后构建。
+
 ### 4. 校验
 
 ```bash
@@ -162,6 +172,12 @@ node build/build.js "$P" --web
   - 给出 `output/` 里各文件的路径；
   - 说明 EPUB 要用 Send to Kindle 发送（USB 拷贝 EPUB 不行），并提醒先删掉设备上的旧版本；
   - 明确说出你检查了哪些内容，以及没有在真机上验证过。
+
+## 两层提示词：工具内置 vs 项目专用
+
+- **工具内置模板**（`$TK/prompts/<语言>/<阶段>.md`）是通用的，只放对任何课程都成立的规定。只有要改进所有书的做法时才改它。
+- **项目专用规定**（`$P/prompts/common.md` 对所有阶段生效，`$P/prompts/<阶段>.md` 只对该阶段生效）放这门课、这本书特有的要求：课程背景、章节标题、课件是否啰嗦、配图从严还是从宽、跨讲重复的知识点由哪一讲主讲、篇幅目标等。`tools/prompt.py` 会把它们附在模板之后（标题为"本项目的补充规定"），同样填好占位符，并且优先于模板。
+- 用户针对某一本书提的要求，写进 `$P/prompts/`，不要写进工具。不要把项目规定放在 `work/tmp/`（那里是临时文件）。
 
 ## 提示词占位符
 
@@ -221,7 +237,7 @@ build/build_web.js    网页预览：KaTeX 预先渲染，静态，可离线
 build/cover.js        封面：plain / figures / abstract；--gallery
 build/lib.js          配置、版本、元数据（Node）
 build/styles/         web.css、epub.css（图片版式、提示框、扉页）
-prompts/en/, zh/      summarize.md、figures.md、book.md（英文 / 中文）
+prompts/en/, zh/      summarize.md、figures.md、book.md；只做书本版用 draft.md、review.md
 profiles/devices.yaml 设备参数
 skill/z2kindle/       Claude Code skill（同样的流程，加上子任务并行）
 examples/demo/        示例项目：英文主版本 + zh 中文版本（课件由脚本生成）

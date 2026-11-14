@@ -26,6 +26,7 @@ Pipeline (each stage is re-runnable):
 | 2 notes | subagents | `$TK/prompts/<lang>/summarize.md` |
 | 3 figures | subagents | `$TK/prompts/<lang>/figures.md` (trial on 1 chapter first) |
 | 3b book edition (optional) | subagents | `$TK/prompts/<lang>/book.md` (trial first) |
+| book-only (no reading notes) | subagents | `draft.md` → `book.md` (`--edition main --source work/draft`) → `review.md`; see AGENTS.md "Book-only workflow" |
 | check | script | `python3 -I $TK/tools/check.py <project> [--edition E]` (3b: `--edition book --baseline main --book`) |
 | 4 build | script | `node $TK/build/build.js <project>` → every edition's EPUB in `output/`; web preview only with `--web` or `web: true` |
 
@@ -59,7 +60,7 @@ Pipeline (each stage is re-runnable):
    series, identifier). It is embedded in the EPUB, the author is printed on the cover.
 9. **Cover**: `cover.style` in book.yaml is `plain` (default), `figures` (collage of note
    figures, `figures: auto|[paths]`, `count`) or `abstract` (generative art: `art:
-   flow|contours|mosaic|orbits|network`, `palette`, `seed`). If the user cares about the cover, run
+   flow|contours|mosaic|orbits|network|circuit`, `palette`, `seed`). If the user cares about the cover, run
    `node $TK/build/cover.js <project> --gallery` and show them `work/covers/contact.png`
    to choose; `cover.image` overrides everything.
 10. **Deliver**: tell the user the `.epub` files in `<project>/output/` (and the web preview
@@ -67,6 +68,9 @@ Pipeline (each stage is re-runnable):
    goes to the device via Send to Kindle (USB copy of EPUB does not work on Kindle).
 
 ## Rules worth keeping
+- Two prompt layers: toolkit templates in `$TK/prompts/` stay generic; course/book-specific
+  requirements go in `<project>/prompts/common.md` and `<project>/prompts/<stage>.md`, which
+  `tools/prompt.py` appends after the template (they take precedence). Never put them in `work/tmp/`.
 - Notes Markdown is the single source; never hand-edit generated HTML/EPUB.
 - Formulas: `$…$` / `$$…$$`, KaTeX-compatible. Web pre-renders with KaTeX; EPUB rasterises
   each formula (MathJax → SVG → PNG, sized in em) because Kindle's math support is unreliable.

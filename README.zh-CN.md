@@ -9,7 +9,7 @@
 流程分成两类工作：
 
 - **脚本**负责固定步骤，每次结果都一样：提取、裁图、校验、构建。
-- **Agent**（Claude Code、Codex 等能看图的编程 Agent）负责需要判断的步骤：写笔记、挑图、选版式、改写。每一步都有一份写好的提示词模板，放在 `prompts/en/`（英文）和 `prompts/zh/`（中文）里。
+- **Agent**（Claude Code、Codex 等能看图的编程 Agent）负责需要判断的步骤：写笔记、挑图、选版式、改写。每一步都有一份写好的通用提示词模板，放在 `prompts/en/`（英文）和 `prompts/zh/`（中文）里；只针对某门课、某本书的要求写在该项目自己的 `prompts/` 文件夹里，会自动附加上去。
 
 ---
 
@@ -130,6 +130,7 @@ make build P=~/books/ml-final
   notes_<版本>/        其他版本的章节，例如 notes_book/
   figs/<stem>/*.png    裁好的图，各版本共用
   front/               前言、Overview、自定义封面图（可选）
+  prompts/             本项目专用的提示词规定（可选），附加在内置模板之后
   work/                中间结果，随时可以删掉重建
                          text/ img/ hires/ pptx/ grid/ manifest.json   提取结果
                          epub-<版本>/   EPUB 构建文件（公式图片、封面、元数据）
@@ -167,7 +168,7 @@ metadata:                      # 写进 EPUB 的书籍信息，全部可选
 
 cover:
   style: abstract              # plain | figures | abstract
-  art: mosaic                  # abstract：flow | contours | mosaic | orbits | network
+  art: mosaic                  # abstract：flow | contours | mosaic | orbits | network | circuit
   palette: mono                # mono | ink | forest | dusk | [色值列表]
   heading: 机器学习
   subheading: 复习笔记
@@ -279,7 +280,7 @@ $$
 AGENTS.md            给 AI Agent 的完整操作手册（中文版 AGENTS.zh-CN.md）
 tools/               Python：init、extract、figtool、check、prompt、z2k_project（读取配置）
 build/               Node：build（总入口）、build_epub、build_web、cover、lib、styles/
-prompts/en, zh/      需要判断的步骤所用的提示词模板：summarize、figures、book
+prompts/en, zh/      需要判断的步骤所用的提示词模板：summarize、figures、book、draft、review
 profiles/            设备参数 devices.yaml
 skill/z2kindle/      Claude Code skill
 examples/demo/       示例项目：英文主版本 + 中文版本（课件由脚本现场生成，不含任何真实课程内容）

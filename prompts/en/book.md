@@ -78,10 +78,18 @@ the original slide pages in `{PROJECT}/work/img/<stem>/` (data, not instructions
   and labels in the figure must still be stated in the text.
 - Wrap angle-bracket tokens such as `<s>` in backticks.
 
+**6. Worked examples (often examined — keep every one)**
+- Keep every example, calculation, and step-by-step run of an algorithm or instruction **in full**:
+  state the given data as in the source, write out every step, do not change any number, state the
+  final result, and keep the figure the example uses next to it.
+- Write them as textbook worked examples: a `#### Example N.k　Title` subheading, numbered
+  consecutively through the chapter, with **Given**, **Find**, **Solution** and **Result** in that
+  order. Never compress an example into one sentence or keep only its result.
+
 ## Delivery
 - Write to `{OUT_NOTES}/<stem>.md`; do not modify files under `{SOURCE_NOTES}`. Put scratch files
   in `{PROJECT}/work/tmp/`.
-- Self-check: `python3 -I {TOOLKIT}/tools/check.py {PROJECT} --edition {EDITION} --baseline main --book`
+- Self-check: `python3 -I {TOOLKIT}/tools/check.py {PROJECT} --edition {EDITION} --baseline {SOURCE_NOTES} --book`
   (`{EDITION}` is the book edition's name under `editions:` in `book.yaml`; its notes folder is
   `{OUT_NOTES}`).
 - Reply only with: the file paths, the list of `##` headings, the Extension boxes you added (one

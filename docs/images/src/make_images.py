@@ -103,7 +103,7 @@ def figure_crop(lang, t):
 
 def covers(lang, t):
     d = os.path.join(TMP, f'covers.{lang}')
-    subprocess.run(['node', 'build/cover.js', DEMO, '--edition', t['edition'], '--gallery', '--out', d], cwd=TK, check=True, capture_output=True)
+    subprocess.run(['node', 'build/cover.js', DEMO, '--edition', t['edition'], '--gallery', '--style', 'abstract', '--out', d], cwd=TK, check=True, capture_output=True)
     save(Image.open(os.path.join(d, 'contact.png')), f'covers.{lang}.png')
 
 

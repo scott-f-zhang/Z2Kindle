@@ -89,6 +89,8 @@ Agent 会按 [AGENTS.md](AGENTS.md) 依次完成：写阅读笔记（`summarize`
 python3 -I tools/prompt.py ~/books/ml-final summarize --chapters L1_Intro,L2_Regression
 ```
 
+只针对这本书的要求写在项目自己的 `prompts/` 文件夹里，会自动附加上去，见[为某一本书定制提示词](#为某一本书定制提示词)。
+
 **用 Claude Code 的话**，还可以装上自带的 skill，它会自动把章节分组，派给多个子任务并行处理：
 
 ```bash
@@ -209,15 +211,17 @@ editions:                      # 其他版本：只写和主版本不同的设�
 |---|---|
 | `plain`（默认） | 白底黑字标题页，附章节目录；章节多时自动分两栏 |
 | `figures` | 标题加一组幻灯片配图拼贴。`figures: auto` 会从各章自动挑图，也可以写成图片路径列表；`count: 1–9` 控制张数 |
-| `abstract` | 生成式抽象图案，上面压一张标题卡片。图案用 `art` 选，配色用 `palette` 选，换一个 `seed` 数字就换一种变化 |
+| `abstract` | 生成式抽象图案，上面压一张标题卡片。图案用 `art` 选（`flow`、`contours`、`mosaic`、`orbits`、`network`、`circuit`），配色用 `palette` 选，换一个 `seed` 数字就换一种变化 |
 
-先把所有样式都渲染出来比较一下，再决定用哪个：
+先把六种抽象图案并排渲染出来比较，再把喜欢的那个写进 `cover.art`：
 
 ```bash
-make covers P=~/books/ml-final     # 输出到 work/covers/<版本>/，contact.png 是对比总览
+make covers P=~/books/ml-final COVER_ARGS="--style abstract"   # 对比图在 work/covers/<版本>/contact.png
 ```
 
-![示例书的 7 种封面](docs/images/covers.zh.png)
+![示例书的六种抽象封面：flow、contours、mosaic、orbits、network、circuit](docs/images/covers.zh.png)
+
+去掉 `COVER_ARGS` 就会把 `plain` 和 `figures` 样式也一起渲染。
 
 想用自己的图片做封面，就写 `cover.image: front/cover.png`，它的优先级最高。
 
@@ -231,6 +235,36 @@ make covers P=~/books/ml-final     # 输出到 work/covers/<版本>/，contact.p
 - **是否彩色**：决定封面的默认配色。
 
 正文由 Kindle 自己重排（字体、字号、行距都由阅读设置决定），所以同一份内容对所有 Kindle 都通用。换设备时，真正需要改的只有封面尺寸，改 `device:` 就会自动处理。要支持新设备，在这个文件里加一项即可。
+
+## 为某一本书定制提示词
+
+`prompts/en/` 和 `prompts/zh/` 里的模板是通用的，适用于任何幻灯片。只针对某一本书的要求（主题背景、章节标题、配图从严还是从宽、精简到什么程度、多份幻灯片之间重复的知识点由哪一章主讲等），写在这本书自己的 `prompts/` 文件夹里，不要改工具：
+
+```
+~/books/ml-final/prompts/
+  common.md      附加到每个阶段
+  summarize.md   只附加到写笔记阶段
+  figures.md     只附加到配图阶段
+  book.md        只附加到书本版阶段
+  draft.md       只做书本版时的起草阶段
+  review.md      只做书本版时的审校阶段
+```
+
+每个文件都是可选的。`tools/prompt.py` 会把它们附在模板后面（标题为"本项目的补充规定"），同样填好占位符（`{PROJECT}`、`{TOOLKIT}` 等），并告诉 Agent 这些规定优先于模板。查看拼好的结果：
+
+```bash
+python3 -I tools/prompt.py ~/books/ml-final book --chapters L3_Generalization --edition book
+```
+
+`prompts/book.md` 的例子：
+
+```markdown
+- 章节标题：L1 → "# 第 1 章　线性模型"，L2 → "# 第 2 章　优化方法"。
+- 每章篇幅与原笔记相当，不要用文字描述图长什么样。
+- 正则化在第 3 章完整讲，后面各章只引用。
+```
+
+也可以直接把要求告诉 Agent（比如"这些幻灯片重复很多，把重复的合并"），[AGENTS.zh-CN.md](AGENTS.zh-CN.md) 会让它把规定写进项目的 `prompts/`。不属于标准阶段的任务（比如一个精简的速查版）可以把说明单独存成 `prompts/cheatsheet.md` 这样的文件；`prompt.py` 不会自动附加它，需要直接交给 Agent，并在 `book.yaml` 里对应版本旁边注明。
 
 ## 笔记格式
 
@@ -275,7 +309,7 @@ $$
 | `python3 -I tools/figtool.py <project> crop <stem> <页码> x0 y0 x1 y1 <名字>` | 按预览图坐标裁图，保存到 `figs/<stem>/` |
 | `make check P=… [E=…]` | 校验笔记 |
 | `make build P=… [E=…]` | 构建 EPUB 到 `output/`（`BUILD_ARGS=--web` 同时生成网页预览） |
-| `make covers P=… [E=…]` | 渲染全部封面样式用来比较 |
+| `make covers P=… [E=…]` | 渲染全部封面样式用来比较（`COVER_ARGS="--style abstract"` 只渲染六种抽象图案） |
 | `make demo` / `make clean-demo` | 跑示例 / 清理示例生成的文件 |
 
 ## 仓库结构

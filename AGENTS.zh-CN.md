@@ -167,7 +167,7 @@ node build/build.js "$P" --web
 
 - **网页预览**：用 `python3 -m http.server --directory "$P/work/web/main"` 打开，用竖屏尺寸查看。抽查公式、每种版式的图各一张，以及一个长表格。
 - **EPUB**：解压后，对每个 `*.xhtml` 做 XML 解析；再检查 `EPUB/content.opf` 里的书名、作者和标识符是否正确。
-- **封面**：如果用户在意封面，运行 `node build/cover.js "$P" --gallery`，把 `work/covers/<版本>/contact.png` 给用户看。
+- **封面**：如果用户在意封面，运行 `node build/cover.js "$P" --gallery --style abstract`（六种抽象图案；去掉 `--style abstract` 就渲染全部样式），把 `work/covers/<版本>/contact.png` 给用户看。
 - **向用户汇报**：
   - 给出 `output/` 里各文件的路径；
   - 说明 EPUB 要用 Send to Kindle 发送（USB 拷贝 EPUB 不行），并提醒先删掉设备上的旧版本；
@@ -178,6 +178,20 @@ node build/build.js "$P" --web
 - **工具内置模板**（`$TK/prompts/<语言>/<阶段>.md`）是通用的，只放对任何幻灯片都成立的规定。只有要改进所有书的做法时才改它。
 - **项目专用规定**（`$P/prompts/common.md` 对所有阶段生效，`$P/prompts/<阶段>.md` 只对该阶段生效）放这本书特有的要求：主题背景、章节标题、幻灯片是否啰嗦、配图从严还是从宽、多份幻灯片之间重复的知识点由哪一章主讲、篇幅目标等。`tools/prompt.py` 会把它们附在模板之后（标题为"本项目的补充规定"），同样填好占位符，并且优先于模板。
 - 用户针对某一本书提的要求，写进 `$P/prompts/`，不要写进工具。不要把项目规定放在 `work/tmp/`（那里是临时文件）。
+
+具体做法：
+
+| 文件 | 附加到 | 常见内容 |
+|---|---|---|
+| `$P/prompts/common.md` | 每个阶段 | 主题和读者、全程适用的规定（例如"例子一个不少"） |
+| `$P/prompts/summarize.md`、`figures.md` | 对应阶段 | 笔记风格、配图标准 |
+| `$P/prompts/book.md` | 书本版阶段 | 最终的章节标题和编号、篇幅目标、重复知识点由哪一章主讲 |
+| `$P/prompts/draft.md`、`review.md` | 只做书本版的流程 | 怎样合并重复的幻灯片、审校时必须重算什么 |
+| 其他名字，例如 `$P/prompts/cheatsheet.md` | 不自动附加（不是标准阶段） | 自定义任务或版本的说明；直接交给 Agent，并在 `book.yaml` 对应版本旁边注明 |
+
+1. 只写和模板不同的部分，不要照抄模板。文件尽量短（用要点），用书的语言写。`{PROJECT}` 等占位符在这些文件里同样会被填好。
+2. 检查拼好的提示词：`python3 -I tools/prompt.py "$P" <阶段> --chapters … [--edition …]` 的结尾应当有"本项目的补充规定"一节。
+3. 如果某条规定其实对所有书都成立，就把它移进工具模板。
 
 ## 提示词占位符
 
@@ -234,7 +248,7 @@ tools/prompt.py       填好提示词模板               tools/z2k_project.py  
 build/build.js        构建入口（所有版本；--web 可选）
 build/build_epub.js   EPUB：公式经 MathJax 转 PNG，封面，元数据
 build/build_web.js    网页预览：KaTeX 预先渲染，静态，可离线
-build/cover.js        封面：plain / figures / abstract；--gallery
+build/cover.js        封面：plain / figures / abstract；--gallery [--style abstract]
 build/lib.js          配置、版本、元数据（Node）
 build/styles/         web.css、epub.css（图片版式、提示框、扉页）
 prompts/en/, zh/      summarize.md、figures.md、book.md；只做书本版用 draft.md、review.md

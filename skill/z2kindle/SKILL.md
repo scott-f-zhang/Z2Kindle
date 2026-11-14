@@ -61,7 +61,8 @@ Pipeline (each stage is re-runnable):
 9. **Cover**: `cover.style` in book.yaml is `plain` (default), `figures` (collage of note
    figures, `figures: auto|[paths]`, `count`) or `abstract` (generative art: `art:
    flow|contours|mosaic|orbits|network|circuit`, `palette`, `seed`). If the user cares about the cover, run
-   `node $TK/build/cover.js <project> --gallery` and show them `work/covers/contact.png`
+   `node $TK/build/cover.js <project> --gallery --style abstract` (six abstract arts; omit `--style abstract`
+   for every style) and show them `work/covers/<edition>/contact.png`
    to choose; `cover.image` overrides everything.
 10. **Deliver**: tell the user the `.epub` files in `<project>/output/` (and the web preview
    path if built), and that EPUB

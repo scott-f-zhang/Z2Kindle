@@ -214,7 +214,8 @@ lists each failing formula. Fix those formulas in the notes and rebuild.
   at a portrait viewport. Spot-check formulas, one figure of each layout, and a long table.
 - **EPUB**: unzip it and XML-parse every `*.xhtml` file. Then check that `EPUB/content.opf`
   contains the expected title, author and identifier.
-- **Cover**: if the user cares about it, run `node build/cover.js "$P" --gallery` and show them
+- **Cover**: if the user cares about it, run `node build/cover.js "$P" --gallery --style abstract`
+  (the six abstract arts; drop `--style abstract` for every style) and show them
   `work/covers/<edition>/contact.png`.
 - **Report to the user**: give the paths of the files in `output/`. Tell them the EPUB has to be
   sent with Send to Kindle (copying an EPUB over USB does not work), and that they should delete
@@ -232,6 +233,22 @@ lists each failing formula. Fix those formulas in the notes and rebuild.
   placeholders in them, and they take precedence over the template.
 - When the user gives a requirement for one book, write it into `$P/prompts/`, not into the toolkit.
   Never write project rules into `work/tmp/` (that folder is scratch).
+
+How to do it:
+
+| File | Appended to | Typical content |
+|---|---|---|
+| `$P/prompts/common.md` | every stage | subject and audience, rules that hold throughout (e.g. "keep every worked example") |
+| `$P/prompts/summarize.md`, `figures.md` | that stage | note style, figure policy |
+| `$P/prompts/book.md` | book stage | final chapter titles and numbering, length targets, which chapter owns a repeated topic |
+| `$P/prompts/draft.md`, `review.md` | book-only workflow | how to merge repeated slides, what the reviewer must recompute |
+| any other name, e.g. `$P/prompts/cheatsheet.md` | nothing (not a standard stage) | instructions for a custom task or edition; hand it to the agent yourself and note it next to the edition in `book.yaml` |
+
+1. Write only what differs from the template; do not copy template text. Keep the files short
+   (bullets), in the book's language. Placeholders such as `{PROJECT}` are filled in them too.
+2. Check the assembled prompt: `python3 -I tools/prompt.py "$P" <stage> --chapters … [--edition …]`
+   must end with the "Project-specific rules" section.
+3. When a rule turns out to apply to every book, move it into the toolkit template instead.
 
 ## Prompt placeholders
 
@@ -302,7 +319,7 @@ tools/prompt.py       fill a prompt template      tools/z2k_project.py  config +
 build/build.js        build entry (all editions; --web optional)
 build/build_epub.js   EPUB: MathJax -> PNG formulas, cover, metadata
 build/build_web.js    web preview: KaTeX pre-rendered, static, offline
-build/cover.js        covers: plain / figures / abstract; --gallery
+build/cover.js        covers: plain / figures / abstract; --gallery [--style abstract]
 build/lib.js          config + editions + metadata (Node)
 build/styles/         web.css, epub.css (figure layouts, callout boxes, title page)
 prompts/en/, zh/      summarize.md, figures.md, book.md; draft.md, review.md (book-only workflow)

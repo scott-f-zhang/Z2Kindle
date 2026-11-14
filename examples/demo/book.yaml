@@ -1,15 +1,15 @@
 # Book project config for Z2kindle. Paths are relative to this file.
-title: Demo Course · Revision Notes
+title: Demo Slides · Reading Notes
 subtitle: Z2kindle demo
 language: en                # en (default) or zh-CN; picks prompts/en or prompts/zh
 device: scribe-11           # see profiles/devices.yaml
 
-sources: sources            # folder with .pdf / .pptx lecture files
+sources: sources            # folder with .pdf / .pptx slide decks
 notes: notes                # chapter markdown (one file per source, same stem)
 front: front/preface.md     # optional; shown before chapter list / as first EPUB chapter
 cover:
-  heading: Demo Course
-  subheading: Revision Notes
+  heading: Demo Slides
+  subheading: Reading Notes
   tagline: Demo · formulas and figures
   footer: Typeset for Kindle Scribe
 
@@ -34,11 +34,11 @@ web: true                   # also build the web preview (work/web/main/)
 editions:
   zh:
     language: zh-CN
-    title: 演示课程 · 复习笔记
+    title: 演示幻灯片 · 阅读笔记
     subtitle: Z2kindle 示例
     notes: notes_zh
     front: front/preface_zh.md
-    cover: {heading: 演示课程, subheading: 复习笔记, tagline: 示例 · 图文公式完整, footer: 为 Kindle Scribe 排版}
+    cover: {heading: 演示幻灯片, subheading: 阅读笔记, tagline: 示例 · 图文公式完整, footer: 为 Kindle Scribe 排版}
     metadata:
       author: 示例作者
       description: Z2kindle 自带的示例书，演示公式、配图和多版本构建。

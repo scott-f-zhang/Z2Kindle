@@ -101,6 +101,8 @@ Following [AGENTS.md](AGENTS.md), the agent does three steps, running the checks
 python3 -I tools/prompt.py ~/books/ml-final summarize --chapters L1_Intro,L2_Regression
 ```
 
+Wishes for this particular book go into the project's own `prompts/` folder and are appended automatically; see [Custom prompt rules for one book](#custom-prompt-rules-for-one-book).
+
 **With Claude Code**, you can also install the bundled skill. It groups chapters and hands them to parallel sub-agents automatically:
 
 ```bash
@@ -232,15 +234,17 @@ The cover is sized to the device screen, in one of three styles:
 |---|---|
 | `plain` (default) | Black-on-white title page with the chapter list; long lists switch to two columns |
 | `figures` | Title plus a collage of slide figures. `figures: auto` picks one figure from each chapter; or give a list of image paths. `count: 1–9` sets how many |
-| `abstract` | Generative art under a title card. `art` picks the pattern, `palette` the colours, and a different `seed` number gives a new variation |
+| `abstract` | Generative art under a title card. `art` picks the pattern (`flow`, `contours`, `mosaic`, `orbits`, `network`, `circuit`), `palette` the colours, and a different `seed` number gives a new variation |
 
-Render every style first, then choose:
+Preview the six abstract arts side by side, then put the one you like in `cover.art`:
 
 ```bash
-make covers P=~/books/ml-final     # writes work/covers/<edition>/; contact.png compares them
+make covers P=~/books/ml-final COVER_ARGS="--style abstract"   # work/covers/<edition>/contact.png
 ```
 
-![The demo book's seven covers](docs/images/covers.en.png)
+![The six abstract covers of the demo book: flow, contours, mosaic, orbits, network, circuit](docs/images/covers.en.png)
+
+Leave out `COVER_ARGS` to render the `plain` and `figures` styles as well.
 
 To use your own image, set `cover.image: front/cover.png`. It overrides everything else.
 
@@ -254,6 +258,36 @@ To use your own image, set `cover.image: front/cover.png`. It overrides everythi
 - **colour**: sets the default cover palette.
 
 The Kindle reflows the text itself (font, size and line spacing come from the reader's settings), so the same content works on every Kindle. The only thing that really has to change between devices is the cover size, and changing `device:` handles that. To support a new device, add an entry to the file.
+
+## Custom prompt rules for one book
+
+The templates in `prompts/en/` and `prompts/zh/` are generic: they work for any slide deck. Wishes that apply to one book only (the subject, chapter titles, how strictly to choose figures, how much to condense, which chapter owns a topic that several decks repeat) go into that book's own `prompts/` folder, not into the toolkit:
+
+```
+~/books/ml-final/prompts/
+  common.md      added to every stage
+  summarize.md   added to the notes stage only
+  figures.md     added to the figures stage only
+  book.md        added to the book-edition stage only
+  draft.md       book-only workflow: draft stage
+  review.md      book-only workflow: review stage
+```
+
+Every file is optional. `tools/prompt.py` appends them after the template under "Project-specific rules", fills in the same placeholders (`{PROJECT}`, `{TOOLKIT}`, …), and the agent is told they take precedence over the template. To see the result:
+
+```bash
+python3 -I tools/prompt.py ~/books/ml-final book --chapters L3_Generalization --edition book
+```
+
+Example `prompts/book.md`:
+
+```markdown
+- Chapter titles: L1 → "# Chapter 1: Linear Models", L2 → "# Chapter 2: Optimisation".
+- Keep each chapter about as long as the source notes; do not describe what a figure looks like.
+- Regularisation is explained fully in Chapter 3; later chapters refer back to it.
+```
+
+You can simply tell the agent a requirement ("the slides repeat themselves a lot, merge the repeats"); [AGENTS.md](AGENTS.md) tells it to write the rule into the project's `prompts/`. A task that is not one of the standard stages, for example a condensed cheat-sheet edition, can keep its own instructions in a file such as `prompts/cheatsheet.md`; `prompt.py` does not append it, so hand it to the agent directly and note it next to the edition in `book.yaml`.
 
 ## Note format
 
@@ -298,7 +332,7 @@ Run every command from the repository root. `P=` is the project folder; `E=` is 
 | `python3 -I tools/figtool.py <project> crop <stem> <page> x0 y0 x1 y1 <name>` | crop by preview coordinates into `figs/<stem>/` |
 | `make check P=… [E=…]` | check the notes |
 | `make build P=… [E=…]` | build EPUBs into `output/` (`BUILD_ARGS=--web` adds the web preview) |
-| `make covers P=… [E=…]` | render every cover style for comparison |
+| `make covers P=… [E=…]` | render every cover style for comparison (`COVER_ARGS="--style abstract"`: only the six arts) |
 | `make demo` / `make clean-demo` | run the demo / remove its generated files |
 
 ## Repository layout

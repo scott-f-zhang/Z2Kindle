@@ -6,6 +6,7 @@
 //   node build/cover.js <project> [--edition E] [--style S] [--art A] [--seed N]
 //        [--palette P] [--count N] [--out file.png]
 //   node build/cover.js <project> --gallery     # render every style/art into work/covers/<edition>/ + contact.png
+//   node build/cover.js <project> --gallery --style abstract   # only the generative arts (3 x 2 sheet)
 const fs = require('fs');
 const path = require('path');
 const { Resvg } = require('@resvg/resvg-js');
@@ -310,10 +311,12 @@ function renderCover(p, chapterFiles, outFile, opts = {}) {
 const makeCover = (p, chapterFiles, outFile) => renderCover(p, chapterFiles, outFile);
 
 function gallery(p, chapterFiles, dir, opts = {}) {
-  const variants = [['plain', {}], ['figures', { style: 'figures' }], ['figures-3', { style: 'figures', count: 3 }],
-    ...ARTS.map(a => [`abstract-${a}`, { style: 'abstract', art: a }])];
+  const abstracts = ARTS.map(a => [`abstract-${a}`, { style: 'abstract', art: a }]);
+  const onlyAbstract = opts.style === 'abstract';             // --style abstract: just the generative arts
+  const variants = onlyAbstract ? abstracts
+    : [['plain', {}], ['figures', { style: 'figures' }], ['figures-3', { style: 'figures', count: 3 }], ...abstracts];
   const files = variants.map(([name, o]) => [name, renderCover(p, chapterFiles, path.join(dir, `${name}.png`), { ...opts, ...o })]);
-  const [W, H] = p.device.screen || [1980, 2640], tw = 360, th = Math.round(tw * H / W), cols = 4, rows = Math.ceil(files.length / cols);
+  const [W, H] = p.device.screen || [1980, 2640], tw = 360, th = Math.round(tw * H / W), cols = onlyAbstract ? 3 : 4, rows = Math.ceil(files.length / cols);
   const cells = files.map(([name, f], i) => {
     const x = 30 + (i % cols) * (tw + 30), y = 30 + Math.floor(i / cols) * (th + 80);
     return `<image x="${x}" y="${y}" width="${tw}" height="${th}" xlink:href="data:image/png;base64,${fs.readFileSync(f).toString('base64')}"/><rect x="${x}" y="${y}" width="${tw}" height="${th}" fill="none" stroke="#999"/><text x="${x + tw / 2}" y="${y + th + 44}" font-family="Helvetica, Arial, sans-serif" font-size="28" text-anchor="middle">${name}</text>`;

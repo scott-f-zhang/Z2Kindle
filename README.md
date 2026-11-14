@@ -173,6 +173,10 @@ device: scribe-11              # see profiles/devices.yaml
 front: front/overview.md       # preface (optional)
 output_name: ML_Review         # -> output/ML_Review.epub (default: the folder name)
 web: false                     # true = also build the web preview
+# chapters: [R1, R2, L01, L02]  # explicit order (needed when deck numbers overlap)
+# parts:                       # optional part divider pages
+#   - {title: "Part I", first: R1, intro: front/part1.md}
+#   - {title: "Part II", first: L01}
 
 metadata:                      # embedded in the EPUB; every field optional
   author: Jane Doe             # or a list

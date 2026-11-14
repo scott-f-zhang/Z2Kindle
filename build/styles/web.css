@@ -49,6 +49,7 @@ li { margin: 0.3em 0; }
 
 .katex { font-size: 1.08em; }
 .katex-display { margin: 1em 0; padding: 0.4em 0; overflow-x: auto; overflow-y: hidden; }
+.katex { position: relative; }   /* keeps KaTeX's hidden MathML layer (position: absolute) from widening the page */
 
 table { border-collapse: collapse; width: 100%; margin: 1em 0; font-size: 0.95em; display: block; overflow-x: auto; }
 th, td { border: 1px solid var(--rule); padding: 0.4em 0.6em; text-align: left; vertical-align: top; }
@@ -106,3 +107,5 @@ h2, h3, h4, .fig.full, .fig.half, .fig.pair, table, .toc { clear: both; }
 
 /* author · publisher · date under the book title on the index page */
 .book-meta { color: #555; margin: -0.4em 0 1.4em; font-size: 0.95em; }
+/* book parts on the index page (book.yaml `parts:`) */
+h3.part { font-size: 1.15em; margin: 1.6em 0 0.4em; padding: 0.3em 0; border-top: 2px solid var(--rule); border-bottom: 1px solid var(--rule); }

@@ -54,6 +54,9 @@ metadata:
   # identifier: ""          # ISBN, or leave unset for a stable generated UUID (re-sent books replace the old copy)
 
 # chapters: [stem1, stem2]  # optional explicit order (default: natural sort by first number)
+# parts:                    # optional part divider pages, e.g. two course sections in one book
+#   - {title: "Part I", first: stem1, intro: front/part1.md}
+#   - {title: "Part II", first: stem5}
 
 # output_name: my-notes     # EPUB file name in output/ (default: the project folder name)
 web: false                  # true = also build the web preview into work/web/<edition>/

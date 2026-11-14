@@ -113,6 +113,19 @@ function chapterFiles(p) {
     .map(f => path.join(p.notes, f));
 }
 
+// Optional book parts: `parts: [{title, first: <chapter stem>, intro?: <markdown file>}]` in book.yaml.
+// Returns a Map from a chapter file to the part that starts at it.
+function partStarts(p, files) {
+  const m = new Map();
+  for (const part of p.cfg.parts || []) {
+    const f = files.find(x => path.basename(x, '.md') === String(part.first));
+    if (!f) { console.warn(`parts: chapter "${part.first}" not found, part "${part.title}" skipped`); continue; }
+    const intro = part.intro && fs.existsSync(p.path(part.intro)) ? fs.readFileSync(p.path(part.intro), 'utf8').trim() : '';
+    m.set(f, { title: String(part.title), intro });
+  }
+  return m;
+}
+
 function pandoc(args, opts = {}) {
   return execFileSync('pandoc', args, { encoding: 'utf8', maxBuffer: 1 << 28, ...opts });
 }
@@ -126,4 +139,4 @@ function checkPandoc() {
 
 const h1Of = file => (fs.readFileSync(file, 'utf8').match(/^# (.+)$/m) || [, path.basename(file, '.md')])[1].trim();
 
-module.exports = { TOOLKIT, PANDOC_FORMAT, MAIN, loadProject, parseArgs, editionNames, bookMeta, chapterFiles, pandoc, checkPandoc, h1Of };
+module.exports = { TOOLKIT, PANDOC_FORMAT, MAIN, loadProject, parseArgs, editionNames, bookMeta, chapterFiles, partStarts, pandoc, checkPandoc, h1Of };

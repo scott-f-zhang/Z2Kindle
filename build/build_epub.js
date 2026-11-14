@@ -11,7 +11,7 @@ const { SVG } = require('mathjax-full/js/output/svg.js');
 const { liteAdaptor } = require('mathjax-full/js/adaptors/liteAdaptor.js');
 const { RegisterHTMLHandler } = require('mathjax-full/js/handlers/html.js');
 const { AllPackages } = require('mathjax-full/js/input/tex/AllPackages.js');
-const { TOOLKIT, PANDOC_FORMAT, loadProject, parseArgs, bookMeta, chapterFiles, pandoc, checkPandoc } = require('./lib');
+const { TOOLKIT, PANDOC_FORMAT, loadProject, parseArgs, bookMeta, chapterFiles, partStarts, pandoc, checkPandoc } = require('./lib');
 const { makeCover } = require('./cover');
 
 const args = parseArgs(process.argv.slice(2));
@@ -76,7 +76,16 @@ if (p.front && fs.existsSync(p.front)) {
   inputs.push(f);
 }
 const chapters = chapterFiles(p);
-inputs.push(...chapters);
+const parts = partStarts(p, chapters);
+chapters.forEach((c, i) => {
+  if (parts.has(c)) {                               // part divider page: its own "# " section in the TOC
+    const { title, intro } = parts.get(c);
+    const f = path.join(work, `part_${i}.md`);
+    fs.writeFileSync(f, `# ${title} {.part}\n\n${intro}\n`);
+    inputs.push(f);
+  }
+  inputs.push(c);
+});
 
 let book = null;
 for (const f of inputs) {

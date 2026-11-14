@@ -72,7 +72,7 @@ python3 -I tools/init.py "$P" --title "…" --device scribe-11 [--language zh-CN
 python3 -I tools/extract.py "$P"
 ```
 
-页数和预览图尺寸见 `$P/work/manifest.json`。章节顺序按文件名里的第一个数字自然排序，也可以在 `book.yaml` 里用 `chapters:` 明确列出。
+页数和预览图尺寸见 `$P/work/manifest.json`。章节顺序按文件名里的第一个数字自然排序，也可以在 `book.yaml` 里用 `chapters:` 明确列出。两组课件编号重叠时（例如 `R1…R4` 和 `L01…L14`）必须明确列出。要把章节分成几部分并加分部页，写 `parts: [{title, first: <章节名>, intro: <可选的 .md>}]`。
 
 ### 2. 写阅读笔记（需要判断）
 

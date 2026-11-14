@@ -82,7 +82,9 @@ python3 -I tools/extract.py "$P"
 ```
 
 Read `$P/work/manifest.json` for page counts and preview sizes. Chapter order follows the first
-number in each file name (natural sort), or an explicit `chapters:` list in `book.yaml`.
+number in each file name (natural sort), or an explicit `chapters:` list in `book.yaml`. Use an
+explicit list when two sets of decks share numbers (e.g. `R1…R4` and `L01…L14`). To group chapters
+into parts with divider pages, add `parts: [{title, first: <stem>, intro: <optional .md>}]`.
 
 ### 2. Reading notes (judgement)
 

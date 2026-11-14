@@ -42,3 +42,6 @@ section.titlepage h1.subtitle { font-size: 1.15em; font-weight: normal; margin: 
 section.titlepage p.aut { font-size: 1.1em; font-weight: bold; margin: 0.3em 0; }
 section.titlepage p.publisher, section.titlepage p.date { margin: 0.2em 0; color: #444; }
 section.titlepage div.rights { margin-top: 3em; font-size: 0.8em; color: #555; }
+/* part divider page (book.yaml `parts:`) */
+h1.part { border-bottom: none; text-align: center; margin-top: 35%; font-size: 1.8em; }
+h1.part + p, h1.part ~ p { text-align: center; }

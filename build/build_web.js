@@ -4,7 +4,7 @@
 const fs = require('fs');
 const path = require('path');
 const katex = require('katex');
-const { TOOLKIT, PANDOC_FORMAT, loadProject, parseArgs, bookMeta, chapterFiles, pandoc, checkPandoc } = require('./lib');
+const { TOOLKIT, PANDOC_FORMAT, loadProject, parseArgs, bookMeta, chapterFiles, partStarts, pandoc, checkPandoc } = require('./lib');
 
 const args = parseArgs(process.argv.slice(2));
 const p = loadProject(args.target, args.edition);
@@ -50,7 +50,8 @@ ${body}
 ${nav}
 </main></body></html>`;
 
-const chapters = chapterFiles(p).map(file => {
+const files = chapterFiles(p), parts = partStarts(p, files);
+const chapters = files.map(file => {
   const label = path.basename(file);
   let html = renderMath(md2html(file), label);
   const h1 = (html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/) || [, label])[1];
@@ -61,7 +62,7 @@ const chapters = chapterFiles(p).map(file => {
   html = html.replace(/<h2[^>]*>([\s\S]*?)<\/h2>/g, (m, t) => { i++; toc.push(`<li><a href="#s${i}">${t}</a></li>`); return `<h2 id="s${i}">${t}</h2>`; });
   const tocHtml = `<nav class="toc"><p class="toc-title">${p.t.chapterToc}</p><ol>${toc.join('')}</ol></nav>`;
   if (toc.length) html = bq ? html.replace(bq[0], `${bq[0]}\n${tocHtml}`) : html.replace('<h2 id="s1">', `${tocHtml}\n<h2 id="s1">`);
-  return { slug: path.basename(file, '.md').toLowerCase().replace(/[^a-z0-9_-]+/g, '-'), h1, summary, html };
+  return { part: parts.get(file), slug: path.basename(file, '.md').toLowerCase().replace(/[^a-z0-9_-]+/g, '-'), h1, summary, html };
 });
 
 chapters.forEach((c, k) => {
@@ -73,10 +74,19 @@ chapters.forEach((c, k) => {
 let front = '';
 if (p.front && fs.existsSync(p.front)) front = renderMath(md2html(p.front), 'front').replace(/<h1([^>]*)>([\s\S]*?)<\/h1>/, '<h2$1>$2</h2>');
 const title = p.cfg.title || 'Notes';
-const list = chapters.map(c => `<li><a href="${c.slug}.html">${c.h1}</a><div class="ov">${c.summary}</div></li>`).join('\n');
+const item = c => `<li><a href="${c.slug}.html">${c.h1}</a><div class="ov">${c.summary}</div></li>`;
+let list = '';
+chapters.forEach((c, k) => {
+  if (c.part) {
+    const intro = c.part.intro ? renderMath(pandoc(['-f', PANDOC_FORMAT, '-t', 'html5', '--katex'], { input: c.part.intro }), 'part') : '';
+    list += `${k ? '</ol>' : ''}<h3 class="part">${c.part.title}</h3>${intro}<ol class="chapters" start="${k + 1}">`;
+  } else if (!k) list += '<ol class="chapters">';
+  list += item(c) + '\n';
+});
+list += '</ol>';
 const bm = bookMeta(p), escH = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const metaLine = [bm.authors.map(a => a.name).join(p.lang.startsWith('zh') ? '、' : ', '), bm.publisher, bm.date].filter(Boolean).map(escH).join(' · ');
-fs.writeFileSync(path.join(out, 'index.html'), page(title, `<h1>${title}</h1>${metaLine ? `<p class="book-meta">${metaLine}</p>` : ''}${front}<h2>${p.t.chapters}</h2><ol class="chapters">${list}</ol>`));
+fs.writeFileSync(path.join(out, 'index.html'), page(title, `<h1>${title}</h1>${metaLine ? `<p class="book-meta">${metaLine}</p>` : ''}${front}<h2>${p.t.chapters}</h2>${list}`));
 
 console.log(`web: ${chapters.length} chapters -> ${out}/index.html`);
 if (errors.length) { console.log(`KaTeX errors (${errors.length}):`); errors.forEach(e => console.log('  ' + e)); process.exitCode = 1; }

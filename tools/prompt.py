@@ -32,8 +32,9 @@ STAGES = ('summarize', 'figures', 'book', 'draft', 'review')
 
 def outline(p, folder):
     lines = []
-    stems = sorted((f[:-3] for f in os.listdir(folder) if f.endswith('.md') and '.part' not in f),
-                   key=natural_key) if os.path.isdir(folder) else []
+    have = {f[:-3] for f in os.listdir(folder) if f.endswith('.md') and '.part' not in f} if os.path.isdir(folder) else set()
+    order = p.cfg.get('chapters')                     # explicit order wins (deck numbers may overlap)
+    stems = [s for s in order if s in have] if order else sorted(have, key=natural_key)
     for stem in stems or p.note_stems():
         f = os.path.join(folder, stem + '.md')
         title = stem

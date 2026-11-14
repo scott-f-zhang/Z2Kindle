@@ -154,6 +154,10 @@ device: scribe-11              # 见 profiles/devices.yaml
 front: front/overview.md       # 前言（可选）
 output_name: ML_Review         # -> output/ML_Review.epub（默认用文件夹名）
 web: false                     # true = 同时生成网页预览
+# chapters: [R1, R2, L01, L02]  # 明确章节顺序（课件编号重叠时必须写）
+# parts:                       # 可选：分部页
+#   - {title: "第一部分", first: R1, intro: front/part1.md}
+#   - {title: "第二部分", first: L01}
 
 metadata:                      # 写进 EPUB 的书籍信息，全部可选
   author: 张三                 # 也可以是列表

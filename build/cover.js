@@ -87,10 +87,30 @@ function ctx(p, opts) {
   };
 }
 // heading / subheading / rule / tagline starting at design-y `y0`; returns [svg, bottom design-y]
+// rough rendered width of a string in em (bold sans): CJK full width, Latin by letter class
+const emWidth = t => [...String(t)].reduce((w, c) => w + (/[\u2e80-\uffef]/.test(c) ? 1 : /[A-Z]/.test(c) ? 0.72
+  : /[mwMW]/.test(c) ? 0.9 : /[ilj.,'·:;|!]/.test(c) ? 0.3 : c === ' ' ? 0.28 : 0.6), 0);
+// fit a line into `width`: break a too-long heading at a space into two lines, then shrink if still too wide
+function fitLines(text, size, width, allowWrap) {
+  const t = String(text || '');
+  if (emWidth(t) * size <= width) return [[t], size];
+  const words = t.split(' ');
+  if (allowWrap && words.length > 1) {
+    let best = null;
+    for (let i = 1; i < words.length; i++) {
+      const a = words.slice(0, i).join(' '), b = words.slice(i).join(' '), w = Math.max(emWidth(a), emWidth(b));
+      if (!best || w < best[2]) best = [a, b, w];
+    }
+    return [[best[0], best[1]], Math.min(size, Math.floor(width / best[2]))];
+  }
+  return [[t], Math.floor(width / emWidth(t))];
+}
 function titleBlock(x, y0, width, X) {
   const { k, T, heading, sub, tagline, author } = X;
-  let y = y0 + 150, s = T(x, y, 150, heading, 700);
-  if (sub) { y += 190; s += T(x, y, 116, sub, 700); }
+  const [hl, hs] = fitLines(heading, 150, width, true), [sl, ss] = fitLines(sub, 116, width, false);
+  let y = y0 + 150 - (150 - hs) * 0.6, s = '';
+  hl.forEach((line, i) => { if (i) y += hs * 1.15; s += T(x, y, hs, line, 700); });
+  if (sub) { y += 190 - (150 - hs) * 0.4; s += T(x, y, ss, sl[0], 700); }
   y += 90; s += `<rect x="${x * k}" y="${y * k}" width="${width * k}" height="${10 * k}" fill="#000"/>`;
   if (tagline) { y += 130; s += T(x, y, 62, tagline, 400, '#333'); }
   if (author) { y += 110; s += T(x, y, 60, author, 700, '#111'); }

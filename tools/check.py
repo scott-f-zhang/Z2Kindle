@@ -64,9 +64,10 @@ def check_chapter(p, stem, text, args, t2s):
         issues.append(f'figure numbering not 1..n: {nums}')
     body = IMG.sub('', text)
     for cap, _ in figs:
-        m = re.match(r'((?:图|Figure)\s*\d+-\d+)', cap)
-        if m and not re.search(re.escape(m.group(1)).replace(r'\ ', r'\s*'), body):
-            issues.append(f'not referenced in text: {m.group(1)}')
+        m = re.match(r'(?:图|Figure)\s*(\d+-\d+)', cap)
+        # "Figure 3-2", "图 3-2", and lists such as "Figures 3-2 and 3-3" / "图 3-2 和 3-3" all count
+        if m and not re.search(r'(?:图|Figures?)[^。.\n]{0,40}?(?<![\d-])' + re.escape(m.group(1)) + r'(?![\d])', body):
+            issues.append(f'not referenced in text: {m.group(0)}')
     stripped = CODE_MATH.sub('', text)
     for tag in sorted(set(re.findall(r'</?[A-Za-z][A-Za-z0-9]*\b[^>\n]*>', stripped))):
         issues.append(f'raw HTML-like tag (wrap in backticks?): {tag}')
